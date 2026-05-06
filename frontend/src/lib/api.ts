@@ -62,7 +62,7 @@ export interface CsvImport {
   total_chunks: number;
   idempotency_key: string;
   source_checksum: string | null;
-  reassembled_s3_key: string | null;
+  reassembled_display_name: string | null;
   reassembled_checksum: string | null;
   error_message: string | null;
   progress: number;
@@ -146,7 +146,7 @@ export const api = {
 
   createImport(
     file: File,
-    target_kind: string,
+    target_kind: "sales_record" | "ledger_entry" | "binary_asset",
     input_kind: "csv" | "binary",
     onProgress?: (pct: number) => void,
   ) {

@@ -18,7 +18,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_06_000001) do
     t.bigint "record_id", null: false
     t.string "record_type", null: false
     t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
-    t.index %w[record_type record_id name blob_id], name: "index_active_storage_attachments_uniqueness", unique: true
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
 
   create_table "active_storage_blobs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -33,13 +33,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_06_000001) do
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
-  create_table "active_storage_variant_records",
-               charset: "utf8mb4",
-               collation: "utf8mb4_0900_ai_ci",
-               force: :cascade do |t|
+  create_table "active_storage_variant_records", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
-    t.index %w[blob_id variation_digest], name: "index_active_storage_variant_records_uniqueness", unique: true
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
   create_table "binary_assets", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -78,9 +75,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_06_000001) do
     t.integer "start_row"
     t.string "status", default: "pending", null: false
     t.datetime "updated_at", null: false
-    t.index %w[csv_import_id chunk_index],
-            name: "index_csv_import_chunks_on_csv_import_id_and_chunk_index",
-            unique: true
+    t.index ["csv_import_id", "chunk_index"], name: "index_csv_import_chunks_on_csv_import_id_and_chunk_index", unique: true
     t.index ["csv_import_id"], name: "index_csv_import_chunks_on_csv_import_id"
     t.index ["status"], name: "index_csv_import_chunks_on_status"
   end
@@ -112,7 +107,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_06_000001) do
     t.index ["idempotency_key"], name: "index_csv_imports_on_idempotency_key", unique: true
     t.index ["input_kind"], name: "index_csv_imports_on_input_kind"
     t.index ["status"], name: "index_csv_imports_on_status"
-    t.index %w[user_id created_at], name: "index_csv_imports_on_user_id_and_created_at"
+    t.index ["user_id", "created_at"], name: "index_csv_imports_on_user_id_and_created_at"
     t.index ["user_id"], name: "index_csv_imports_on_user_id"
   end
 
@@ -136,7 +131,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_06_000001) do
     t.datetime "updated_at", null: false
     t.index ["csv_import_id"], name: "index_ledger_entries_on_csv_import_id"
     t.index ["idempotency_key"], name: "index_ledger_entries_on_idempotency_key", unique: true
-    t.index %w[posted_on account_code], name: "index_ledger_entries_on_posted_on_and_account_code"
+    t.index ["posted_on", "account_code"], name: "index_ledger_entries_on_posted_on_and_account_code"
   end
 
   create_table "sales_records", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -153,7 +148,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_06_000001) do
     t.datetime "updated_at", null: false
     t.index ["csv_import_id"], name: "index_sales_records_on_csv_import_id"
     t.index ["idempotency_key"], name: "index_sales_records_on_idempotency_key", unique: true
-    t.index %w[recorded_on customer_code], name: "index_sales_records_on_recorded_on_and_customer_code"
+    t.index ["recorded_on", "customer_code"], name: "index_sales_records_on_recorded_on_and_customer_code"
   end
 
   create_table "users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|

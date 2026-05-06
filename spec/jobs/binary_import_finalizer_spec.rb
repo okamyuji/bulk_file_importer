@@ -25,12 +25,13 @@ RSpec.describe CsvImportFinalizerJob, "binary imports" do
   end
 
   def make_chunk(index, chunk_bytes, status: "completed")
+    start_byte = csv_import.csv_import_chunks.sum(:byte_size)
     chunk =
       csv_import.csv_import_chunks.create!(
         chunk_index: index,
         status: status,
-        start_byte: index * 3,
-        end_byte: index * 3 + chunk_bytes.bytesize - 1,
+        start_byte: start_byte,
+        end_byte: start_byte + chunk_bytes.bytesize - 1,
         byte_size: chunk_bytes.bytesize,
         s3_key: "imports/binary/finalizer/chunk_#{format("%06d", index)}.bin",
       )
@@ -51,6 +52,24 @@ RSpec.describe CsvImportFinalizerJob, "binary imports" do
     expect(csv_import.reassembled_checksum).to eq(checksum)
     expect(AppS3.client.get_object(bucket: AppS3.bucket, key: csv_import.reassembled_s3_key).body.read).to eq(bytes)
     expect(csv_import.binary_asset.status).to eq("completed")
+  end
+
+  it "is idempotent after a completed import already has a completed asset" do
+    create(
+      :binary_asset,
+      csv_import: csv_import,
+      file_name: csv_import.file_name,
+      content_type: csv_import.content_type,
+      byte_size: csv_import.byte_size,
+      checksum: csv_import.source_checksum,
+      status: "completed",
+      idempotency_key: csv_import.idempotency_key,
+    )
+    csv_import.update!(status: "completed")
+
+    expect(BinaryFileReassembler).not_to receive(:call)
+
+    described_class.perform_now(csv_import.id)
   end
 
   it "does not reassemble when a chunk failed" do

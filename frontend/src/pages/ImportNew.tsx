@@ -28,13 +28,17 @@ export function ImportNew() {
       setFile(null);
       setError(
         inputKind === "csv"
-          ? "CSVファイルのみアップロードできます。"
-          : "JPEG/PNG/WebP/MP4/MOVファイルのみアップロードできます。",
+          ? "Only CSV files can be uploaded."
+          : "Only JPEG, PNG, WebP, MP4, or MOV files can be uploaded.",
       );
     },
     accept:
       inputKind === "csv"
-        ? { "text/csv": [".csv"], "application/vnd.ms-excel": [".csv"] }
+        ? {
+            "text/csv": [".csv"],
+            "application/csv": [".csv"],
+            "application/vnd.ms-excel": [".csv"],
+          }
         : {
             "image/jpeg": [".jpg", ".jpeg"],
             "image/png": [".png"],
@@ -74,9 +78,16 @@ export function ImportNew() {
         </p>
       </header>
 
-      <div className="flex gap-2 text-sm">
+      <div
+        className="flex gap-2 text-sm"
+        role="radiogroup"
+        aria-label="Input kind"
+      >
         {(["csv", "binary"] as const).map((k) => (
           <button
+            type="button"
+            role="radio"
+            aria-checked={inputKind === k}
             key={k}
             onClick={() => {
               setInputKind(k);
@@ -94,9 +105,16 @@ export function ImportNew() {
       </div>
 
       {inputKind === "csv" && (
-        <div className="flex gap-2 text-sm">
+        <div
+          className="flex gap-2 text-sm"
+          role="radiogroup"
+          aria-label="CSV target kind"
+        >
           {(["sales_record", "ledger_entry"] as const).map((k) => (
             <button
+              type="button"
+              role="radio"
+              aria-checked={targetKind === k}
               key={k}
               onClick={() => setTargetKind(k)}
               className={clsx("rounded-full border px-3 py-1.5 transition", {

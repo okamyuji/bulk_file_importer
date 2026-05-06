@@ -20,7 +20,6 @@ class CsvImportResource
              :total_chunks,
              :idempotency_key,
              :source_checksum,
-             :reassembled_s3_key,
              :reassembled_checksum,
              :error_message,
              :created_at,
@@ -31,5 +30,11 @@ class CsvImportResource
     next 0 if denominator.zero?
 
     (imp.progress_numerator.to_f / denominator * 100).round(1)
+  end
+
+  attribute :reassembled_display_name do |imp|
+    next nil if imp.reassembled_s3_key.blank?
+
+    imp.file_name.presence || "reassembled-#{imp.id}.bin"
   end
 end

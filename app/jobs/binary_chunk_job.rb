@@ -34,10 +34,6 @@ class BinaryChunkJob < ApplicationJob
     raise
   rescue StandardError => e
     csv_import_id = chunk&.csv_import_id
-    if csv_import_id
-      csv_import = CsvImport.find_by(id: csv_import_id)
-      CsvImportFinalizerJob.perform_later(csv_import_id) if csv_import&.finish_one_chunk!
-    end
 
     CsvImportChunk.where(id: chunk_id).update_all(
       status: "failed",
@@ -50,6 +46,10 @@ class BinaryChunkJob < ApplicationJob
       error_class: e.class.name,
       error_message: e.message[0, 200],
     )
+    if csv_import_id && final_retry_attempt?
+      csv_import = CsvImport.find_by(id: csv_import_id)
+      CsvImportFinalizerJob.perform_later(csv_import_id) if csv_import&.finish_one_chunk!
+    end
     raise
   end
 
@@ -67,6 +67,16 @@ class BinaryChunkJob < ApplicationJob
 
   def checksum_for(chunk)
     object = AppS3.client.get_object(bucket: AppS3.bucket, key: chunk.s3_key)
-    Digest::SHA256.hexdigest(object.body.read)
+    digest = Digest::SHA256.new
+    while (bytes = object.body.read(1.megabyte))
+      digest.update(bytes)
+    end
+    digest.hexdigest
+  ensure
+    object&.body&.close if object&.body&.respond_to?(:close)
+  end
+
+  def final_retry_attempt?
+    executions >= 3
   end
 end

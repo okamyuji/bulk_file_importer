@@ -2,6 +2,7 @@
 
 require "rails_helper"
 require "base64"
+require "tempfile"
 
 RSpec.describe "Api::V1::CsvImports", type: :request do
   let(:alice) { create(:user) }
@@ -15,6 +16,21 @@ RSpec.describe "Api::V1::CsvImports", type: :request do
          }
     { "Authorization" => response.headers["Authorization"] }
   end
+
+  def uploaded_tempfile(name, content_type, bytes)
+    basename = File.basename(name, ".*")
+    extension = File.extname(name)
+    tempfile = Tempfile.new([basename, extension], Rails.root.join("tmp"))
+    tempfile.binmode
+    tempfile.write(bytes)
+    tempfile.rewind
+    tempfiles << tempfile
+    Rack::Test::UploadedFile.new(tempfile.path, content_type)
+  end
+
+  let(:tempfiles) { [] }
+
+  after { tempfiles.each(&:close!) }
 
   describe "GET /api/v1/csv_imports" do
     it "requires authentication" do
@@ -44,20 +60,18 @@ RSpec.describe "Api::V1::CsvImports", type: :request do
 
   describe "POST /api/v1/csv_imports" do
     let(:file) do
-      fixture = Rails.root.join("tmp/spec_sample.csv")
-      File.write(
-        fixture,
+      uploaded_tempfile(
+        "spec_sample.csv",
+        "text/csv",
         "recorded_on,customer_code,product_code,quantity,unit_price,amount,memo\n2026-04-01,C1,P1,1,1,1,ok\n",
       )
-      Rack::Test::UploadedFile.new(fixture.to_s, "text/csv")
     end
     let(:png_file) do
-      fixture = Rails.root.join("tmp/spec_sample.png")
-      File.binwrite(
-        fixture,
+      uploaded_tempfile(
+        "spec_sample.png",
+        "image/png",
         Base64.decode64("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="),
       )
-      Rack::Test::UploadedFile.new(fixture.to_s, "image/png")
     end
 
     it "creates an import and enqueues CsvImportJob" do
@@ -88,7 +102,7 @@ RSpec.describe "Api::V1::CsvImports", type: :request do
       body = JSON.parse(response.body).fetch("data")
       expect(body["input_kind"]).to eq("binary")
       expect(body["content_type"]).to eq("image/png")
-      expect(body["source_checksum"]).to be_present
+      expect(body["source_checksum"]).to be_nil
     end
 
     it "rejects invalid target_kind" do

@@ -7,9 +7,22 @@ import { ProgressBar } from "../components/ProgressBar";
 import { StatusBadge } from "../components/StatusBadge";
 
 function formatBytes(value: number) {
-  if (value < 1024) return `${value} B`;
-  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
-  return `${(value / 1024 / 1024).toFixed(1)} MB`;
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let size = value;
+  let unitIndex = 0;
+
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+
+  return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+}
+
+function formatByteRange(start: number | null, end: number | null) {
+  if (start === null || end === null) return "—";
+
+  return `${start}–${end}`;
 }
 
 export function ImportDetail() {
@@ -33,6 +46,21 @@ export function ImportDetail() {
 
   const imp = data?.data;
   const chunks = useMemo(() => data?.chunks ?? [], [data?.chunks]);
+  const metrics: Array<[string, string | number]> = imp
+    ? imp.input_kind === "binary"
+      ? [
+          ["total", formatBytes(imp.total_bytes || imp.byte_size)],
+          ["processed", formatBytes(imp.processed_bytes)],
+          ["failed", formatBytes(imp.failed_bytes)],
+          ["chunks", imp.total_chunks],
+        ]
+      : [
+          ["total", imp.total_rows],
+          ["processed", imp.processed_rows],
+          ["failed", imp.failed_rows],
+          ["chunks", imp.total_chunks],
+        ]
+    : [];
 
   const hasFailedChunk = useMemo(
     () => chunks.some((c) => c.status === "failed"),
@@ -57,20 +85,7 @@ export function ImportDetail() {
       <ProgressBar value={imp.progress} status={imp.status} />
 
       <dl className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {(imp.input_kind === "binary"
-          ? [
-              ["total", formatBytes(imp.total_bytes || imp.byte_size)],
-              ["processed", formatBytes(imp.processed_bytes)],
-              ["failed", formatBytes(imp.failed_bytes)],
-              ["chunks", imp.total_chunks],
-            ]
-          : [
-              ["total", imp.total_rows],
-              ["processed", imp.processed_rows],
-              ["failed", imp.failed_rows],
-              ["chunks", imp.total_chunks],
-            ]
-        ).map(([k, v]) => (
+        {metrics.map(([k, v]) => (
           <div
             key={k}
             className="rounded-xl border border-slate-800 bg-slate-900/50 p-4"
@@ -93,9 +108,9 @@ export function ImportDetail() {
         </button>
       )}
 
-      {imp.reassembled_s3_key && (
+      {imp.reassembled_display_name && (
         <p className="rounded-lg border border-slate-800 bg-slate-900/50 px-3 py-2 text-xs text-slate-300">
-          Reassembled: {imp.reassembled_s3_key}
+          Reassembled: {imp.reassembled_display_name}
         </p>
       )}
 
@@ -122,7 +137,7 @@ export function ImportDetail() {
                   <td className="px-3 py-2">{c.chunk_index}</td>
                   <td className="px-3 py-2 font-mono">
                     {imp.input_kind === "binary"
-                      ? `${c.start_byte ?? 0}–${c.end_byte ?? 0}`
+                      ? formatByteRange(c.start_byte, c.end_byte)
                       : `${c.start_row}–${c.end_row}`}
                   </td>
                   <td className="px-3 py-2">

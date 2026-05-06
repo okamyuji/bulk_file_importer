@@ -2,13 +2,21 @@
 
 require "rails_helper"
 require "base64"
+require "tempfile"
 
 RSpec.describe UploadFileClassifier do
   def uploaded_file(name, content_type, bytes)
-    path = Rails.root.join("tmp/#{name}")
-    File.binwrite(path, bytes)
-    Rack::Test::UploadedFile.new(path.to_s, content_type)
+    tempfile = Tempfile.new([File.basename(name, ".*"), File.extname(name)], Rails.root.join("tmp"))
+    tempfile.binmode
+    tempfile.write(bytes)
+    tempfile.rewind
+    tempfiles << tempfile
+    Rack::Test::UploadedFile.new(tempfile.path, content_type)
   end
+
+  let(:tempfiles) { [] }
+
+  after { tempfiles.each(&:close!) }
 
   let(:csv_bytes) do
     "recorded_on,customer_code,product_code,quantity,unit_price,amount,memo\n" \
@@ -40,6 +48,6 @@ RSpec.describe UploadFileClassifier do
 
     expect {
       described_class.call(file: file, target_kind: "sales_record", requested_input_kind: "csv")
-    }.to raise_error(UploadFileClassifier::UnsupportedFileType)
+    }.to raise_error(UploadFileClassifier::CsvHeaderMismatch)
   end
 end

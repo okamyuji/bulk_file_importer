@@ -14,6 +14,9 @@ class UploadFileClassifier
   class UnsupportedFileType < StandardError
   end
 
+  class CsvHeaderMismatch < UnsupportedFileType
+  end
+
   class << self
     def call(file:, target_kind:, requested_input_kind: nil)
       new(file, target_kind, requested_input_kind.presence).call
@@ -44,7 +47,9 @@ class UploadFileClassifier
   end
 
   def classify(content_type)
-    if csv_type?(content_type) && valid_csv_header?
+    if csv_type?(content_type)
+      raise CsvHeaderMismatch, csv_header_mismatch_message unless valid_csv_header?
+
       Result.new(input_kind: "csv", content_type: content_type, media_kind: "csv")
     elsif IMAGE_TYPES.include?(content_type)
       Result.new(input_kind: "binary", content_type: content_type, media_kind: "image")
@@ -69,10 +74,20 @@ class UploadFileClassifier
     header = header.dup.force_encoding(Encoding::UTF_8).delete_prefix("\uFEFF")
     parsed = CSV.parse_line(header)
     parsed == CsvRowMapper.expected_headers(target_kind)
-  rescue CSV::MalformedCSVError, Encoding::InvalidByteSequenceError, ArgumentError
+  rescue CSV::MalformedCSVError, Encoding::InvalidByteSequenceError, ArgumentError, IOError, SystemCallError
     false
   ensure
     file.tempfile.rewind
+  end
+
+  def csv_header_mismatch_message
+    expected =
+      if CsvImport::CSV_TARGET_KINDS.include?(target_kind)
+        CsvRowMapper.expected_headers(target_kind).join(",")
+      else
+        "a supported CSV target"
+      end
+    "csv headers do not match #{target_kind.inspect}; expected #{expected}"
   end
 
   def validate_requested_kind!(result)

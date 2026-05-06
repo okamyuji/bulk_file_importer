@@ -21,9 +21,17 @@ RSpec.describe BinaryChunkSplitter do
     expect(result.total_bytes).to eq(10)
     expect(result.total_chunks).to eq(3)
     expect(result.chunks.map(&:byte_size)).to eq([4, 4, 2])
+    expect(result.source_checksum).to eq(Digest::SHA256.hexdigest("abcdefghij"))
 
     rejoined = result.chunks.map { |chunk| fake.get_object(bucket: "b", key: chunk.s3_key).body.read }.join
     expect(rejoined).to eq("abcdefghij")
+  end
+
+  it "does not treat whitespace-only chunks as EOF" do
+    result = call("    abc", chunk_bytes: 4)
+
+    expect(result.total_bytes).to eq(7)
+    expect(result.chunks.map(&:byte_size)).to eq([4, 3])
   end
 
   it "does not treat invalid text encoding as an error" do

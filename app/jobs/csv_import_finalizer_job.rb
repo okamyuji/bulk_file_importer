@@ -53,6 +53,8 @@ class CsvImportFinalizerJob < ApplicationJob
   end
 
   def finalize_binary_import(csv_import, chunks)
+    return if csv_import.status == "completed" && csv_import.binary_asset&.status == "completed"
+
     failed_chunks = chunks.where(status: "failed").count
     total_processed = chunks.where(status: %w[completed completed_with_errors]).sum(:byte_size)
     total_failed = chunks.where(status: "failed").sum(:byte_size)
@@ -65,7 +67,7 @@ class CsvImportFinalizerJob < ApplicationJob
       return
     end
 
-    result = BinaryFileReassembler.call(csv_import: csv_import, bucket: AppS3.bucket, s3_client: AppS3.client)
+    result = reassemble_binary_import!(csv_import)
     csv_import.update!(
       status: "completed",
       processed_bytes: total_processed,
@@ -75,6 +77,10 @@ class CsvImportFinalizerJob < ApplicationJob
     )
     upsert_binary_asset(csv_import, "completed")
     audit_binary_finalized(csv_import, "completed", 0)
+  end
+
+  def reassemble_binary_import!(csv_import)
+    BinaryFileReassembler.call(csv_import: csv_import, bucket: AppS3.bucket, s3_client: AppS3.client)
   rescue StandardError => e
     csv_import.update!(status: "failed", error_message: e.message)
     upsert_binary_asset(csv_import, "failed")
@@ -90,7 +96,7 @@ class CsvImportFinalizerJob < ApplicationJob
           file_name: csv_import.file_name,
           content_type: csv_import.content_type || "application/octet-stream",
           byte_size: csv_import.byte_size,
-          checksum: csv_import.source_checksum || csv_import.idempotency_key,
+          checksum: checksum_for_binary_asset(csv_import),
           reassembled_s3_key: csv_import.reassembled_s3_key,
           reassembled_checksum: csv_import.reassembled_checksum,
           status: status,
@@ -101,6 +107,11 @@ class CsvImportFinalizerJob < ApplicationJob
         )
         asset.save!
       end
+  end
+
+  def checksum_for_binary_asset(csv_import)
+    csv_import.source_checksum.presence || csv_import.reassembled_checksum.presence ||
+      raise(ArgumentError, "missing binary checksum")
   end
 
   def audit_binary_finalized(csv_import, status, failed_chunks)

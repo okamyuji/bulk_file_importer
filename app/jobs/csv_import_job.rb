@@ -49,6 +49,7 @@ class CsvImportJob < ApplicationJob
     }
     if csv_import.binary?
       attrs[:total_bytes] = result.total_bytes
+      attrs[:source_checksum] = result.source_checksum
     else
       attrs[:total_rows] = result.total_rows
     end

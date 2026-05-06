@@ -23,6 +23,6 @@ class AddBinaryImportFields < ActiveRecord::Migration[8.1]
       t.string :checksum
     end
 
-    add_index :csv_imports, :input_kind
+    add_index :csv_imports, %i[user_id input_kind status]
   end
 end

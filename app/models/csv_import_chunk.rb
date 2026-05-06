@@ -10,12 +10,12 @@ class CsvImportChunk < ApplicationRecord
   validates :start_row, :end_row, presence: true, numericality: { greater_than: 0 }, if: :csv_import_csv?
   validates :start_byte,
             :end_byte,
-            :byte_size,
             presence: true,
             numericality: {
               greater_than_or_equal_to: 0,
             },
             if: :csv_import_binary?
+  validates :byte_size, presence: true, numericality: { greater_than: 0 }, if: :csv_import_binary?
   validates :status, inclusion: { in: STATUSES }
   validates :s3_key, presence: true
 
@@ -34,10 +34,12 @@ class CsvImportChunk < ApplicationRecord
   private
 
   def csv_import_csv?
-    csv_import&.csv? != false
+    parent = csv_import
+    parent.nil? || parent.csv?
   end
 
   def csv_import_binary?
-    csv_import&.binary? == true
+    parent = csv_import
+    !parent.nil? && parent.binary?
   end
 end
