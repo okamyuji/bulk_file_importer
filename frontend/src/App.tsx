@@ -31,7 +31,7 @@ function Layout() {
     <div className="min-h-screen">
       <header className="border-b border-slate-800 bg-slate-950/50 backdrop-blur px-6 py-3 flex items-center justify-between">
         <Link to="/imports" className="font-semibold tracking-tight">
-          csv_bulk_importer
+          bulk_file_importer
         </Link>
         <div className="flex items-center gap-3 text-sm text-slate-400">
           <span data-testid="nav-user">
