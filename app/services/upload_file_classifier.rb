@@ -63,9 +63,10 @@ class UploadFileClassifier
     return false unless CsvImport::CSV_TARGET_KINDS.include?(target_kind)
 
     file.tempfile.rewind
-    header = File.open(file.tempfile.path, "r:bom|utf-8", &:gets)
+    header = file.tempfile.gets
     return false if header.blank?
 
+    header = header.dup.force_encoding(Encoding::UTF_8).delete_prefix("\uFEFF")
     parsed = CSV.parse_line(header)
     parsed == CsvRowMapper.expected_headers(target_kind)
   rescue CSV::MalformedCSVError, Encoding::InvalidByteSequenceError, ArgumentError

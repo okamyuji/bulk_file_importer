@@ -3,29 +3,32 @@
 
 module Api
   module V1
-    class RegistrationsController < Devise::RegistrationsController
-      respond_to :json
-      protect_from_forgery with: :null_session
+    class RegistrationsController < ActionController::API
+      before_action :set_audit_context
+
+      def create
+        user = User.new(sign_up_params)
+
+        if user.save
+          Current.user_id = user.id
+          AuditLogger.event("auth.sign_up", provider: "password")
+          token = issue_token(user)
+          response.set_header("Authorization", "Bearer #{token}")
+          render json: { user: { id: user.id, email: user.email, name: user.name }, token: token }, status: :created
+        else
+          AuditLogger.event("auth.sign_up_failure", reasons: user.errors.full_messages.first(3))
+          render json: { error: "invalid", details: user.errors.full_messages }, status: :unprocessable_entity
+        end
+      end
 
       private
 
-      def respond_with(resource, _opts = {})
-        if resource.persisted?
-          Current.user_id = resource.id
-          AuditLogger.event("auth.sign_up", provider: "password")
-          render json: {
-                   user: {
-                     id: resource.id,
-                     email: resource.email,
-                     name: resource.name,
-                   },
-                   token: request.env["warden-jwt_auth.token"],
-                 },
-                 status: :created
-        else
-          AuditLogger.event("auth.sign_up_failure", reasons: resource.errors.full_messages.first(3))
-          render json: { error: "invalid", details: resource.errors.full_messages }, status: :unprocessable_entity
-        end
+      def issue_token(user)
+        Warden::JWTAuth::UserEncoder.new.call(user, :user, nil).first
+      end
+
+      def set_audit_context
+        Current.request_id = request.request_id
       end
 
       def sign_up_params

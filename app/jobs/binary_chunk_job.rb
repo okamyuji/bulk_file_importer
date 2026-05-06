@@ -9,15 +9,17 @@ class BinaryChunkJob < ApplicationJob
   retry_on StandardError, wait: :polynomially_longer, attempts: 3, jitter: 0.15
 
   def perform(chunk_id)
-    chunk = CsvImportChunk.lock.find(chunk_id)
-    Current.csv_import_id = chunk.csv_import_id
-    return if chunk.completed?
+    chunk = mark_processing!(chunk_id)
+    return unless chunk
 
-    chunk.update!(status: "processing")
+    Current.csv_import_id = chunk.csv_import_id
     csv_import = T.must(chunk.csv_import)
 
     checksum = checksum_for(chunk)
-    chunk.update!(status: "completed", processed_rows: 0, failed_rows: 0, checksum: checksum, error_details: nil)
+    CsvImportChunk.transaction do
+      chunk = CsvImportChunk.lock.find(chunk_id)
+      chunk.update!(status: "completed", processed_rows: 0, failed_rows: 0, checksum: checksum, error_details: nil)
+    end
 
     AuditLogger.event(
       "binary_chunk.completed",
@@ -52,6 +54,16 @@ class BinaryChunkJob < ApplicationJob
   end
 
   private
+
+  def mark_processing!(chunk_id)
+    CsvImportChunk.transaction do
+      chunk = CsvImportChunk.lock.find(chunk_id)
+      return nil if chunk.completed?
+
+      chunk.update!(status: "processing")
+      chunk
+    end
+  end
 
   def checksum_for(chunk)
     object = AppS3.client.get_object(bucket: AppS3.bucket, key: chunk.s3_key)
