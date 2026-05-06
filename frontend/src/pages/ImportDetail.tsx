@@ -49,16 +49,16 @@ export function ImportDetail() {
   const metrics: Array<[string, string | number]> = imp
     ? imp.input_kind === "binary"
       ? [
-          ["total", formatBytes(imp.total_bytes || imp.byte_size)],
-          ["processed", formatBytes(imp.processed_bytes)],
-          ["failed", formatBytes(imp.failed_bytes)],
-          ["chunks", imp.total_chunks],
+          ["合計", formatBytes(imp.total_bytes || imp.byte_size)],
+          ["処理済み", formatBytes(imp.processed_bytes)],
+          ["失敗", formatBytes(imp.failed_bytes)],
+          ["チャンク数", imp.total_chunks],
         ]
       : [
-          ["total", imp.total_rows],
-          ["processed", imp.processed_rows],
-          ["failed", imp.failed_rows],
-          ["chunks", imp.total_chunks],
+          ["合計", imp.total_rows],
+          ["処理済み", imp.processed_rows],
+          ["失敗", imp.failed_rows],
+          ["チャンク数", imp.total_chunks],
         ]
     : [];
 
@@ -67,7 +67,7 @@ export function ImportDetail() {
     [chunks],
   );
 
-  if (!imp) return <p className="text-sm text-slate-400">Loading…</p>;
+  if (!imp) return <p className="text-sm text-slate-400">読み込み中…</p>;
 
   return (
     <section className="space-y-6">
@@ -75,7 +75,7 @@ export function ImportDetail() {
         <div>
           <h2 className="text-xl font-semibold">{imp.file_name}</h2>
           <p className="text-xs text-slate-400">
-            {imp.input_kind} · {imp.target_kind} · idempotency{" "}
+            {imp.input_kind} · {imp.target_kind} · 冪等キー{" "}
             {imp.idempotency_key.slice(0, 12)}…
           </p>
         </div>
@@ -104,31 +104,31 @@ export function ImportDetail() {
           disabled={retry.isPending}
           className="rounded-lg bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 px-4 py-2 text-sm font-medium"
         >
-          {retry.isPending ? "Retrying…" : "Retry failed chunks"}
+          {retry.isPending ? "再実行中…" : "失敗チャンクを再実行"}
         </button>
       )}
 
       {imp.reassembled_display_name && (
         <p className="rounded-lg border border-slate-800 bg-slate-900/50 px-3 py-2 text-xs text-slate-300">
-          Reassembled: {imp.reassembled_display_name}
+          再構成: {imp.reassembled_display_name}
         </p>
       )}
 
       <section>
-        <h3 className="text-sm font-semibold mb-2 text-slate-300">Chunks</h3>
+        <h3 className="text-sm font-semibold mb-2 text-slate-300">チャンク</h3>
         <div className="overflow-auto rounded-xl border border-slate-800">
           <table className="min-w-full text-xs">
             <thead className="bg-slate-900/80 text-slate-400">
               <tr>
                 <th className="px-3 py-2 text-left">#</th>
                 <th className="px-3 py-2 text-left">
-                  {imp.input_kind === "binary" ? "Bytes" : "Rows"}
+                  {imp.input_kind === "binary" ? "バイト範囲" : "行範囲"}
                 </th>
-                <th className="px-3 py-2 text-left">Status</th>
-                <th className="px-3 py-2 text-right">OK</th>
-                <th className="px-3 py-2 text-right">Failed</th>
-                <th className="px-3 py-2 text-right">Retries</th>
-                <th className="px-3 py-2 text-left">Errors</th>
+                <th className="px-3 py-2 text-left">ステータス</th>
+                <th className="px-3 py-2 text-right">成功</th>
+                <th className="px-3 py-2 text-right">失敗</th>
+                <th className="px-3 py-2 text-right">再試行</th>
+                <th className="px-3 py-2 text-left">エラー</th>
               </tr>
             </thead>
             <tbody>
@@ -149,11 +149,14 @@ export function ImportDetail() {
                   <td className="px-3 py-2 text-slate-400">
                     {(c.error_details ?? []).slice(0, 2).map((e, i) => (
                       <div key={i}>
-                        row {e.row ?? "—"}: {(e.errors ?? [e.fatal]).join(", ")}
+                        {c.start_row != null
+                          ? `行 ${e.row ?? "—"}`
+                          : "チャンク"}
+                        : {(e.errors ?? [e.fatal]).join(", ")}
                       </div>
                     ))}
                     {(c.error_details ?? []).length > 2 && (
-                      <div>… +{(c.error_details ?? []).length - 2} more</div>
+                      <div>… 他 +{(c.error_details ?? []).length - 2} 件</div>
                     )}
                   </td>
                 </tr>
@@ -165,7 +168,7 @@ export function ImportDetail() {
 
       {lastEvent && (
         <p data-testid="last-cable-event" className="text-xs text-slate-500">
-          last realtime: {lastEvent.event}
+          最新イベント: {lastEvent.event}
         </p>
       )}
     </section>

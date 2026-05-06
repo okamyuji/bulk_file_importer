@@ -27,20 +27,20 @@ export function ImportsIndex() {
   return (
     <section className="space-y-4">
       <header className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Your imports</h2>
+        <h2 className="text-xl font-semibold">インポート一覧</h2>
         <Link
           to="/imports/new"
           className="rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 px-3 py-1.5 text-sm font-medium"
         >
-          + New upload
+          + 新規アップロード
         </Link>
       </header>
 
       {isLoading ? (
-        <p className="text-slate-400 text-sm">Loading…</p>
+        <p className="text-slate-400 text-sm">読み込み中…</p>
       ) : (data?.data ?? []).length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-700 p-10 text-center text-slate-400">
-          No imports yet. Start by uploading a file.
+          まだインポートがありません。ファイルをアップロードしてください。
         </div>
       ) : (
         <ul className="space-y-3">
@@ -57,8 +57,8 @@ export function ImportsIndex() {
                       {imp.target_kind} ·{" "}
                       {imp.input_kind === "binary"
                         ? formatBytes(imp.total_bytes || imp.byte_size)
-                        : `${imp.total_rows} rows`}{" "}
-                      · {imp.total_chunks} chunks
+                        : `${imp.total_rows} 行`}{" "}
+                      · {imp.total_chunks} チャンク
                     </p>
                   </div>
                   <StatusBadge status={imp.status} />
@@ -73,7 +73,7 @@ export function ImportsIndex() {
         onClick={() => refetch()}
         className="text-xs text-slate-500 hover:text-slate-300"
       >
-        Refresh
+        更新
       </button>
     </section>
   );

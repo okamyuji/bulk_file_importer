@@ -11,32 +11,32 @@ export function rand(prefix = "u"): string {
 
 export async function signUp(page: Page, email: string, password: string, name: string): Promise<void> {
   await page.goto("/login");
-  await expect(page.getByRole("heading", { name: /sign in/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /サインイン/ })).toBeVisible();
   await page.getByTestId("toggle-signup").click();
-  await expect(page.getByRole("heading", { name: /create account/i })).toBeVisible();
-  await page.getByLabel(/name/i).fill(name);
-  await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/password/i).fill(password);
+  await expect(page.getByRole("heading", { name: /アカウント作成/ })).toBeVisible();
+  await page.getByLabel(/お名前/).fill(name);
+  await page.getByLabel(/メールアドレス/).fill(email);
+  await page.getByLabel(/パスワード/).fill(password);
   await page.getByTestId("submit").click();
   await expect(page).toHaveURL(/\/imports(\?|$)/, { timeout: 15_000 });
 }
 
 export async function signIn(page: Page, email: string, password: string): Promise<void> {
   await page.goto("/login");
-  await expect(page.getByRole("heading", { name: /sign in/i })).toBeVisible();
-  await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/password/i).fill(password);
+  await expect(page.getByRole("heading", { name: /サインイン/ })).toBeVisible();
+  await page.getByLabel(/メールアドレス/).fill(email);
+  await page.getByLabel(/パスワード/).fill(password);
   await page.getByTestId("submit").click();
   await expect(page).toHaveURL(/\/imports(\?|$)/, { timeout: 15_000 });
 }
 
 export async function uploadCsv(page: Page, fixture: string, targetKind = "sales_record"): Promise<void> {
   await page.goto("/imports/new");
-  if (targetKind !== "sales_record") {
-    await page.getByRole("button", { name: targetKind }).click();
+  if (targetKind === "ledger_entry") {
+    await page.getByRole("radio", { name: "仕訳" }).click();
   }
   await page.locator('input[type="file"]').setInputFiles(path.join(FIXTURES, fixture));
-  await page.getByRole("button", { name: /start import/i }).click();
+  await page.getByRole("button", { name: /インポート開始/ }).click();
   await page.waitForURL(/\/imports\/\d+/);
 }
 

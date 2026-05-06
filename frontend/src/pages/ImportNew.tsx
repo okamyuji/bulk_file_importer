@@ -28,8 +28,8 @@ export function ImportNew() {
       setFile(null);
       setError(
         inputKind === "csv"
-          ? "Only CSV files can be uploaded."
-          : "Only JPEG, PNG, WebP, MP4, or MOV files can be uploaded.",
+          ? "CSVファイルのみアップロードできます。"
+          : "JPEG / PNG / WebP / MP4 / MOV ファイルのみアップロードできます。",
       );
     },
     accept:
@@ -71,19 +71,23 @@ export function ImportNew() {
   return (
     <section className="space-y-6">
       <header>
-        <h2 className="text-xl font-semibold">New import</h2>
+        <h2 className="text-xl font-semibold">新規インポート</h2>
         <p className="text-sm text-slate-400">
-          Upload a CSV or supported media file. Data is streamed, chunked, and
-          processed in the background.
+          CSVまたは画像・動画ファイルをアップロードしてください。バックグラウンドでストリーム読み込み・チャンク分割・並列処理されます。
         </p>
       </header>
 
       <div
         className="flex gap-2 text-sm"
         role="radiogroup"
-        aria-label="Input kind"
+        aria-label="ファイル種別"
       >
-        {(["csv", "binary"] as const).map((k) => (
+        {(
+          [
+            ["csv", "CSV"],
+            ["binary", "画像・動画"],
+          ] as const
+        ).map(([k, label]) => (
           <button
             type="button"
             role="radio"
@@ -99,7 +103,7 @@ export function ImportNew() {
                 inputKind !== k,
             })}
           >
-            {k}
+            {label}
           </button>
         ))}
       </div>
@@ -108,9 +112,14 @@ export function ImportNew() {
         <div
           className="flex gap-2 text-sm"
           role="radiogroup"
-          aria-label="CSV target kind"
+          aria-label="CSV取り込み先"
         >
-          {(["sales_record", "ledger_entry"] as const).map((k) => (
+          {(
+            [
+              ["sales_record", "売上記録"],
+              ["ledger_entry", "仕訳"],
+            ] as const
+          ).map(([k, label]) => (
             <button
               type="button"
               role="radio"
@@ -123,7 +132,7 @@ export function ImportNew() {
                   targetKind !== k,
               })}
             >
-              {k}
+              {label}
             </button>
           ))}
         </div>
@@ -148,15 +157,15 @@ export function ImportNew() {
           </div>
         ) : (
           <p className="text-slate-400">
-            Drag & drop a {inputKind === "csv" ? "CSV" : "media file"}, or click
-            to pick one
+            {inputKind === "csv" ? "CSVファイル" : "画像・動画ファイル"}
+            をドラッグ&ドロップ、またはクリックして選択してください
           </p>
         )}
       </div>
 
       {uploadPct > 0 && uploadPct < 100 && (
         <p className="text-sm text-slate-400">
-          Uploading: {uploadPct.toFixed(0)}%
+          アップロード中: {uploadPct.toFixed(0)}%
         </p>
       )}
       {error && <p className="text-sm text-rose-400">{error}</p>}
@@ -166,7 +175,7 @@ export function ImportNew() {
         disabled={!file || submitting}
         className="rounded-lg bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-950 px-4 py-2 font-medium"
       >
-        {submitting ? "Uploading…" : "Start import"}
+        {submitting ? "アップロード中…" : "インポート開始"}
       </button>
     </section>
   );

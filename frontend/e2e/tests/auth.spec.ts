@@ -5,10 +5,10 @@ test("sign up, see empty imports list, sign out", async ({ page }) => {
   const email = `${rand("alice")}@example.com`;
   await signUp(page, email, "secret123", "Alice");
 
-  await expect(page.getByText(/No imports yet/i)).toBeVisible();
+  await expect(page.getByText(/まだインポートがありません/)).toBeVisible();
   await expect(page.getByTestId("nav-user")).toContainText(email);
 
-  await page.getByRole("button", { name: /sign out/i }).click();
+  await page.getByRole("button", { name: /サインアウト/ }).click();
   await expect(page).toHaveURL(/\/login/);
 });
 

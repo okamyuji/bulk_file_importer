@@ -18,14 +18,14 @@ test("two users see only their own imports", async ({ browser }) => {
 
   // B's list must be empty
   await bPage.goto("/imports");
-  await expect(bPage.getByText(/No imports yet/i)).toBeVisible();
+  await expect(bPage.getByText(/まだインポートがありません/)).toBeVisible();
 
   // B cannot navigate to A's import detail (status 403 from API → error UI)
   const aUrl = aPage.url();
   const match = aUrl.match(/\/imports\/(\d+)/);
   expect(match).not.toBeNull();
   await bPage.goto(`/imports/${match![1]}`);
-  // The detail page shows "Loading…" indefinitely because the API returned 403,
+  // The detail page shows "読み込み中…" indefinitely because the API returned 403,
   // which causes TanStack Query to retry and never resolve. Either way, B never sees A's file_name.
   await expect(bPage.getByText(/small\.csv/)).toHaveCount(0);
 

@@ -38,7 +38,7 @@ function Layout() {
             {user?.name} ({user?.email})
           </span>
           <button onClick={logout} className="text-slate-300 hover:text-white">
-            Sign out
+            サインアウト
           </button>
         </div>
       </header>
@@ -52,7 +52,7 @@ function Layout() {
 function Protected() {
   const { user, initialized } = useAuth();
   if (!initialized)
-    return <p className="p-6 text-sm text-slate-400">Loading…</p>;
+    return <p className="p-6 text-sm text-slate-400">読み込み中…</p>;
   if (!user) return <Navigate to="/login" replace />;
   return <Layout />;
 }

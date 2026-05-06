@@ -38,11 +38,11 @@ export function Login() {
         className="w-full max-w-sm space-y-4 rounded-2xl bg-slate-900/70 backdrop-blur p-8 border border-slate-800"
       >
         <h1 className="text-2xl font-semibold tracking-tight">
-          {mode === "signin" ? "Sign in" : "Create account"}
+          {mode === "signin" ? "サインイン" : "アカウント作成"}
         </h1>
         {mode === "signup" && (
           <label className="block text-sm">
-            <span className="text-slate-400">Name</span>
+            <span className="text-slate-400">お名前</span>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -52,7 +52,7 @@ export function Login() {
           </label>
         )}
         <label className="block text-sm">
-          <span className="text-slate-400">Email</span>
+          <span className="text-slate-400">メールアドレス</span>
           <input
             type="email"
             value={email}
@@ -62,7 +62,7 @@ export function Login() {
           />
         </label>
         <label className="block text-sm">
-          <span className="text-slate-400">Password</span>
+          <span className="text-slate-400">パスワード</span>
           <input
             type="password"
             value={password}
@@ -79,30 +79,30 @@ export function Login() {
           disabled={loading}
           className="w-full rounded-lg bg-sky-500 hover:bg-sky-400 disabled:opacity-50 px-4 py-2 font-medium text-slate-950 transition"
         >
-          {loading ? "…" : mode === "signin" ? "Sign in" : "Sign up"}
+          {loading ? "…" : mode === "signin" ? "サインイン" : "新規登録"}
         </button>
         <p className="text-center text-xs text-slate-400">
           {mode === "signin" ? (
             <>
-              No account?{" "}
+              アカウントをお持ちでないですか？{" "}
               <button
                 type="button"
                 data-testid="toggle-signup"
                 onClick={() => setMode("signup")}
                 className="text-sky-400 hover:underline"
               >
-                Sign up
+                新規登録
               </button>
             </>
           ) : (
             <>
-              Have an account?{" "}
+              アカウントをお持ちですか？{" "}
               <button
                 type="button"
                 onClick={() => setMode("signin")}
                 className="text-sky-400 hover:underline"
               >
-                Sign in
+                サインイン
               </button>
             </>
           )}
