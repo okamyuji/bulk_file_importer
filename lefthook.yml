@@ -1,6 +1,14 @@
 pre-commit:
   parallel: false
   commands:
+    gitleaks:
+      run: |
+        if ! command -v gitleaks >/dev/null 2>&1; then
+          echo "gitleaks is required. Install with: brew install gitleaks"
+          exit 1
+        fi
+        gitleaks git --staged --redact --no-banner
+
     rubocop:
       glob: "*.{rb,rake,ru}"
       run: bundle exec rubocop --force-exclusion {staged_files}
