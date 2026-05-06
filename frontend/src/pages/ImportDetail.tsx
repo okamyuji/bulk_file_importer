@@ -6,6 +6,12 @@ import { useImportProgress } from "../hooks/useImportProgress";
 import { ProgressBar } from "../components/ProgressBar";
 import { StatusBadge } from "../components/StatusBadge";
 
+function formatBytes(value: number) {
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+  return `${(value / 1024 / 1024).toFixed(1)} MB`;
+}
+
 export function ImportDetail() {
   const { id } = useParams();
   const importId = Number(id);
@@ -41,7 +47,8 @@ export function ImportDetail() {
         <div>
           <h2 className="text-xl font-semibold">{imp.file_name}</h2>
           <p className="text-xs text-slate-400">
-            {imp.target_kind} · idempotency {imp.idempotency_key.slice(0, 12)}…
+            {imp.input_kind} · {imp.target_kind} · idempotency{" "}
+            {imp.idempotency_key.slice(0, 12)}…
           </p>
         </div>
         <StatusBadge status={imp.status} />
@@ -50,12 +57,20 @@ export function ImportDetail() {
       <ProgressBar value={imp.progress} status={imp.status} />
 
       <dl className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          ["total", imp.total_rows],
-          ["processed", imp.processed_rows],
-          ["failed", imp.failed_rows],
-          ["chunks", imp.total_chunks],
-        ].map(([k, v]) => (
+        {(imp.input_kind === "binary"
+          ? [
+              ["total", formatBytes(imp.total_bytes || imp.byte_size)],
+              ["processed", formatBytes(imp.processed_bytes)],
+              ["failed", formatBytes(imp.failed_bytes)],
+              ["chunks", imp.total_chunks],
+            ]
+          : [
+              ["total", imp.total_rows],
+              ["processed", imp.processed_rows],
+              ["failed", imp.failed_rows],
+              ["chunks", imp.total_chunks],
+            ]
+        ).map(([k, v]) => (
           <div
             key={k}
             className="rounded-xl border border-slate-800 bg-slate-900/50 p-4"
@@ -78,6 +93,12 @@ export function ImportDetail() {
         </button>
       )}
 
+      {imp.reassembled_s3_key && (
+        <p className="rounded-lg border border-slate-800 bg-slate-900/50 px-3 py-2 text-xs text-slate-300">
+          Reassembled: {imp.reassembled_s3_key}
+        </p>
+      )}
+
       <section>
         <h3 className="text-sm font-semibold mb-2 text-slate-300">Chunks</h3>
         <div className="overflow-auto rounded-xl border border-slate-800">
@@ -85,7 +106,9 @@ export function ImportDetail() {
             <thead className="bg-slate-900/80 text-slate-400">
               <tr>
                 <th className="px-3 py-2 text-left">#</th>
-                <th className="px-3 py-2 text-left">Rows</th>
+                <th className="px-3 py-2 text-left">
+                  {imp.input_kind === "binary" ? "Bytes" : "Rows"}
+                </th>
                 <th className="px-3 py-2 text-left">Status</th>
                 <th className="px-3 py-2 text-right">OK</th>
                 <th className="px-3 py-2 text-right">Failed</th>
@@ -98,7 +121,9 @@ export function ImportDetail() {
                 <tr key={c.id} className="border-t border-slate-800">
                   <td className="px-3 py-2">{c.chunk_index}</td>
                   <td className="px-3 py-2 font-mono">
-                    {c.start_row}–{c.end_row}
+                    {imp.input_kind === "binary"
+                      ? `${c.start_byte ?? 0}–${c.end_byte ?? 0}`
+                      : `${c.start_row}–${c.end_row}`}
                   </td>
                   <td className="px-3 py-2">
                     <StatusBadge status={c.status} />

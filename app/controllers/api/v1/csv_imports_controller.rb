@@ -25,31 +25,39 @@ module Api
 
         file = params.require(:file)
         target_kind = params.require(:target_kind)
+        classification =
+          UploadFileClassifier.call(file: file, target_kind: target_kind, requested_input_kind: params[:input_kind])
 
-        unless CsvImport::TARGET_KINDS.include?(target_kind)
-          return render json: { error: "invalid target_kind" }, status: :unprocessable_entity
-        end
+        source_checksum = build_source_checksum(file)
 
         imp =
           CsvImport.create!(
             user: current_user,
             file_name: file.original_filename,
+            input_kind: classification.input_kind,
             target_kind: target_kind,
+            content_type: classification.content_type,
+            byte_size: file.size,
+            total_bytes: classification.input_kind == "binary" ? file.size : 0,
+            source_checksum: source_checksum,
             status: "pending",
             idempotency_key: build_idempotency_key(file),
           )
+        file.tempfile.rewind
         imp.source_file.attach(
-          io: file.tempfile.open,
+          io: file.tempfile,
           filename: file.original_filename,
-          content_type: file.content_type || "text/csv",
+          content_type: classification.content_type,
         )
-        imp.update!(s3_prefix: "csv_imports/#{imp.id}")
+        imp.update!(s3_prefix: "imports/#{classification.input_kind}/#{imp.id}")
 
         Current.csv_import_id = imp.id
         AuditLogger.event(
           "csv_import.created",
           file_name: file.original_filename,
           byte_size: file.size,
+          content_type: classification.content_type,
+          input_kind: classification.input_kind,
           target_kind: target_kind,
           idempotency_prefix: imp.idempotency_key[0, 12],
         )
@@ -57,6 +65,8 @@ module Api
         CsvImportJob.perform_later(imp.id)
 
         render json: { data: CsvImportResource.new(imp).serializable_hash }, status: :accepted
+      rescue UploadFileClassifier::UnsupportedFileType => e
+        render json: { error: e.message }, status: :unprocessable_entity
       end
 
       def retry
@@ -76,6 +86,13 @@ module Api
         user = T.must(current_user)
         timestamp = Time.current.strftime("%s%6N")
         Digest::SHA256.hexdigest("#{user.id}|#{file.original_filename}|#{file.size}|#{timestamp}")
+      end
+
+      def build_source_checksum(file)
+        file.tempfile.rewind
+        Digest::SHA256.file(file.tempfile.path).hexdigest
+      ensure
+        file.tempfile.rewind
       end
     end
   end

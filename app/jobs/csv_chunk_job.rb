@@ -31,7 +31,7 @@ class CsvChunkJob < ApplicationJob
     CSV
       .parse(csv_body, headers: true, liberal_parsing: true)
       .each
-      .with_index(chunk.start_row) do |row, row_num|
+      .with_index(T.must(chunk.start_row)) do |row, row_num|
         total_in_chunk += 1
         result = map_and_validate(row, csv_import, target_class, row_num)
 

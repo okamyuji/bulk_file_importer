@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails_helper"
+require "base64"
 
 RSpec.describe "Api::V1::CsvImports", type: :request do
   let(:alice) { create(:user) }
@@ -50,17 +51,59 @@ RSpec.describe "Api::V1::CsvImports", type: :request do
       )
       Rack::Test::UploadedFile.new(fixture.to_s, "text/csv")
     end
+    let(:png_file) do
+      fixture = Rails.root.join("tmp/spec_sample.png")
+      File.binwrite(
+        fixture,
+        Base64.decode64("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="),
+      )
+      Rack::Test::UploadedFile.new(fixture.to_s, "image/png")
+    end
 
     it "creates an import and enqueues CsvImportJob" do
       expect {
-        post "/api/v1/csv_imports", params: { file: file, target_kind: "sales_record" }, headers: auth_headers(alice)
+        post "/api/v1/csv_imports",
+             params: {
+               file: file,
+               target_kind: "sales_record",
+               input_kind: "csv",
+             },
+             headers: auth_headers(alice)
       }.to have_enqueued_job(CsvImportJob)
       expect(response).to have_http_status(:accepted)
       expect(JSON.parse(response.body).dig("data", "status")).to eq("pending")
     end
 
+    it "accepts a supported binary image import" do
+      expect {
+        post "/api/v1/csv_imports",
+             params: {
+               file: png_file,
+               target_kind: "binary_asset",
+               input_kind: "binary",
+             },
+             headers: auth_headers(alice)
+      }.to have_enqueued_job(CsvImportJob)
+      expect(response).to have_http_status(:accepted)
+      body = JSON.parse(response.body).fetch("data")
+      expect(body["input_kind"]).to eq("binary")
+      expect(body["content_type"]).to eq("image/png")
+      expect(body["source_checksum"]).to be_present
+    end
+
     it "rejects invalid target_kind" do
       post "/api/v1/csv_imports", params: { file: file, target_kind: "nope" }, headers: auth_headers(alice)
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+
+    it "rejects a binary file requested as CSV" do
+      post "/api/v1/csv_imports",
+           params: {
+             file: png_file,
+             target_kind: "sales_record",
+             input_kind: "csv",
+           },
+           headers: auth_headers(alice)
       expect(response).to have_http_status(:unprocessable_entity)
     end
   end

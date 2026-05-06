@@ -5,13 +5,18 @@ import { getToken } from "../lib/api";
 export interface ProgressEvent {
   event: "split_started" | "chunk_completed" | "import_finalized";
   csv_import_id: number;
+  input_kind?: "csv" | "binary";
   total_rows?: number;
+  total_bytes?: number;
   total_chunks?: number;
   chunk_id?: number;
   chunk_index?: number;
   status?: string;
   processed_rows?: number;
   failed_rows?: number;
+  processed_bytes?: number;
+  failed_bytes?: number;
+  byte_size?: number;
 }
 
 let consumer: Consumer | null = null;

@@ -11,7 +11,7 @@ class FakeS3
     @store = {}
   end
 
-  def put_object(bucket:, key:, body:)
+  def put_object(bucket:, key:, body:, **_options)
     @store["#{bucket}/#{key}"] = body.is_a?(String) ? body.dup : body.read
     Response.new(StringIO.new(""))
   end

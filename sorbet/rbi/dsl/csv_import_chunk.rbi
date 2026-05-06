@@ -608,6 +608,96 @@ class CsvImportChunk
 
   module GeneratedAttributeMethods
     sig { returns(::Integer) }
+    def byte_size; end
+
+    sig { params(value: ::Integer).returns(::Integer) }
+    def byte_size=(value); end
+
+    sig { returns(T::Boolean) }
+    def byte_size?; end
+
+    sig { returns(T.nilable(::Integer)) }
+    def byte_size_before_last_save; end
+
+    sig { returns(T.untyped) }
+    def byte_size_before_type_cast; end
+
+    sig { returns(T::Boolean) }
+    def byte_size_came_from_user?; end
+
+    sig { returns(T.nilable([::Integer, ::Integer])) }
+    def byte_size_change; end
+
+    sig { returns(T.nilable([::Integer, ::Integer])) }
+    def byte_size_change_to_be_saved; end
+
+    sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
+    def byte_size_changed?(from: T.unsafe(nil), to: T.unsafe(nil)); end
+
+    sig { returns(T.nilable(::Integer)) }
+    def byte_size_in_database; end
+
+    sig { returns(T.nilable([::Integer, ::Integer])) }
+    def byte_size_previous_change; end
+
+    sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
+    def byte_size_previously_changed?(from: T.unsafe(nil), to: T.unsafe(nil)); end
+
+    sig { returns(T.nilable(::Integer)) }
+    def byte_size_previously_was; end
+
+    sig { returns(T.nilable(::Integer)) }
+    def byte_size_was; end
+
+    sig { void }
+    def byte_size_will_change!; end
+
+    sig { returns(T.nilable(::String)) }
+    def checksum; end
+
+    sig { params(value: T.nilable(::String)).returns(T.nilable(::String)) }
+    def checksum=(value); end
+
+    sig { returns(T::Boolean) }
+    def checksum?; end
+
+    sig { returns(T.nilable(::String)) }
+    def checksum_before_last_save; end
+
+    sig { returns(T.untyped) }
+    def checksum_before_type_cast; end
+
+    sig { returns(T::Boolean) }
+    def checksum_came_from_user?; end
+
+    sig { returns(T.nilable([T.nilable(::String), T.nilable(::String)])) }
+    def checksum_change; end
+
+    sig { returns(T.nilable([T.nilable(::String), T.nilable(::String)])) }
+    def checksum_change_to_be_saved; end
+
+    sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
+    def checksum_changed?(from: T.unsafe(nil), to: T.unsafe(nil)); end
+
+    sig { returns(T.nilable(::String)) }
+    def checksum_in_database; end
+
+    sig { returns(T.nilable([T.nilable(::String), T.nilable(::String)])) }
+    def checksum_previous_change; end
+
+    sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
+    def checksum_previously_changed?(from: T.unsafe(nil), to: T.unsafe(nil)); end
+
+    sig { returns(T.nilable(::String)) }
+    def checksum_previously_was; end
+
+    sig { returns(T.nilable(::String)) }
+    def checksum_was; end
+
+    sig { void }
+    def checksum_will_change!; end
+
+    sig { returns(::Integer) }
     def chunk_index; end
 
     sig { params(value: ::Integer).returns(::Integer) }
@@ -742,10 +832,55 @@ class CsvImportChunk
     sig { void }
     def csv_import_id_will_change!; end
 
-    sig { returns(::Integer) }
+    sig { returns(T.nilable(::Integer)) }
+    def end_byte; end
+
+    sig { params(value: T.nilable(::Integer)).returns(T.nilable(::Integer)) }
+    def end_byte=(value); end
+
+    sig { returns(T::Boolean) }
+    def end_byte?; end
+
+    sig { returns(T.nilable(::Integer)) }
+    def end_byte_before_last_save; end
+
+    sig { returns(T.untyped) }
+    def end_byte_before_type_cast; end
+
+    sig { returns(T::Boolean) }
+    def end_byte_came_from_user?; end
+
+    sig { returns(T.nilable([T.nilable(::Integer), T.nilable(::Integer)])) }
+    def end_byte_change; end
+
+    sig { returns(T.nilable([T.nilable(::Integer), T.nilable(::Integer)])) }
+    def end_byte_change_to_be_saved; end
+
+    sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
+    def end_byte_changed?(from: T.unsafe(nil), to: T.unsafe(nil)); end
+
+    sig { returns(T.nilable(::Integer)) }
+    def end_byte_in_database; end
+
+    sig { returns(T.nilable([T.nilable(::Integer), T.nilable(::Integer)])) }
+    def end_byte_previous_change; end
+
+    sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
+    def end_byte_previously_changed?(from: T.unsafe(nil), to: T.unsafe(nil)); end
+
+    sig { returns(T.nilable(::Integer)) }
+    def end_byte_previously_was; end
+
+    sig { returns(T.nilable(::Integer)) }
+    def end_byte_was; end
+
+    sig { void }
+    def end_byte_will_change!; end
+
+    sig { returns(T.nilable(::Integer)) }
     def end_row; end
 
-    sig { params(value: ::Integer).returns(::Integer) }
+    sig { params(value: T.nilable(::Integer)).returns(T.nilable(::Integer)) }
     def end_row=(value); end
 
     sig { returns(T::Boolean) }
@@ -760,10 +895,10 @@ class CsvImportChunk
     sig { returns(T::Boolean) }
     def end_row_came_from_user?; end
 
-    sig { returns(T.nilable([::Integer, ::Integer])) }
+    sig { returns(T.nilable([T.nilable(::Integer), T.nilable(::Integer)])) }
     def end_row_change; end
 
-    sig { returns(T.nilable([::Integer, ::Integer])) }
+    sig { returns(T.nilable([T.nilable(::Integer), T.nilable(::Integer)])) }
     def end_row_change_to_be_saved; end
 
     sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
@@ -772,7 +907,7 @@ class CsvImportChunk
     sig { returns(T.nilable(::Integer)) }
     def end_row_in_database; end
 
-    sig { returns(T.nilable([::Integer, ::Integer])) }
+    sig { returns(T.nilable([T.nilable(::Integer), T.nilable(::Integer)])) }
     def end_row_previous_change; end
 
     sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
@@ -1058,6 +1193,12 @@ class CsvImportChunk
     def processed_rows_will_change!; end
 
     sig { void }
+    def restore_byte_size!; end
+
+    sig { void }
+    def restore_checksum!; end
+
+    sig { void }
     def restore_chunk_index!; end
 
     sig { void }
@@ -1065,6 +1206,9 @@ class CsvImportChunk
 
     sig { void }
     def restore_csv_import_id!; end
+
+    sig { void }
+    def restore_end_byte!; end
 
     sig { void }
     def restore_end_row!; end
@@ -1092,6 +1236,9 @@ class CsvImportChunk
 
     sig { void }
     def restore_s3_key!; end
+
+    sig { void }
+    def restore_start_byte!; end
 
     sig { void }
     def restore_start_row!; end
@@ -1193,6 +1340,18 @@ class CsvImportChunk
     def s3_key_will_change!; end
 
     sig { returns(T.nilable([::Integer, ::Integer])) }
+    def saved_change_to_byte_size; end
+
+    sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
+    def saved_change_to_byte_size?(from: T.unsafe(nil), to: T.unsafe(nil)); end
+
+    sig { returns(T.nilable([T.nilable(::String), T.nilable(::String)])) }
+    def saved_change_to_checksum; end
+
+    sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
+    def saved_change_to_checksum?(from: T.unsafe(nil), to: T.unsafe(nil)); end
+
+    sig { returns(T.nilable([::Integer, ::Integer])) }
     def saved_change_to_chunk_index; end
 
     sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
@@ -1210,7 +1369,13 @@ class CsvImportChunk
     sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
     def saved_change_to_csv_import_id?(from: T.unsafe(nil), to: T.unsafe(nil)); end
 
-    sig { returns(T.nilable([::Integer, ::Integer])) }
+    sig { returns(T.nilable([T.nilable(::Integer), T.nilable(::Integer)])) }
+    def saved_change_to_end_byte; end
+
+    sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
+    def saved_change_to_end_byte?(from: T.unsafe(nil), to: T.unsafe(nil)); end
+
+    sig { returns(T.nilable([T.nilable(::Integer), T.nilable(::Integer)])) }
     def saved_change_to_end_row; end
 
     sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
@@ -1264,7 +1429,13 @@ class CsvImportChunk
     sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
     def saved_change_to_s3_key?(from: T.unsafe(nil), to: T.unsafe(nil)); end
 
-    sig { returns(T.nilable([::Integer, ::Integer])) }
+    sig { returns(T.nilable([T.nilable(::Integer), T.nilable(::Integer)])) }
+    def saved_change_to_start_byte; end
+
+    sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
+    def saved_change_to_start_byte?(from: T.unsafe(nil), to: T.unsafe(nil)); end
+
+    sig { returns(T.nilable([T.nilable(::Integer), T.nilable(::Integer)])) }
     def saved_change_to_start_row; end
 
     sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
@@ -1282,10 +1453,55 @@ class CsvImportChunk
     sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
     def saved_change_to_updated_at?(from: T.unsafe(nil), to: T.unsafe(nil)); end
 
-    sig { returns(::Integer) }
+    sig { returns(T.nilable(::Integer)) }
+    def start_byte; end
+
+    sig { params(value: T.nilable(::Integer)).returns(T.nilable(::Integer)) }
+    def start_byte=(value); end
+
+    sig { returns(T::Boolean) }
+    def start_byte?; end
+
+    sig { returns(T.nilable(::Integer)) }
+    def start_byte_before_last_save; end
+
+    sig { returns(T.untyped) }
+    def start_byte_before_type_cast; end
+
+    sig { returns(T::Boolean) }
+    def start_byte_came_from_user?; end
+
+    sig { returns(T.nilable([T.nilable(::Integer), T.nilable(::Integer)])) }
+    def start_byte_change; end
+
+    sig { returns(T.nilable([T.nilable(::Integer), T.nilable(::Integer)])) }
+    def start_byte_change_to_be_saved; end
+
+    sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
+    def start_byte_changed?(from: T.unsafe(nil), to: T.unsafe(nil)); end
+
+    sig { returns(T.nilable(::Integer)) }
+    def start_byte_in_database; end
+
+    sig { returns(T.nilable([T.nilable(::Integer), T.nilable(::Integer)])) }
+    def start_byte_previous_change; end
+
+    sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
+    def start_byte_previously_changed?(from: T.unsafe(nil), to: T.unsafe(nil)); end
+
+    sig { returns(T.nilable(::Integer)) }
+    def start_byte_previously_was; end
+
+    sig { returns(T.nilable(::Integer)) }
+    def start_byte_was; end
+
+    sig { void }
+    def start_byte_will_change!; end
+
+    sig { returns(T.nilable(::Integer)) }
     def start_row; end
 
-    sig { params(value: ::Integer).returns(::Integer) }
+    sig { params(value: T.nilable(::Integer)).returns(T.nilable(::Integer)) }
     def start_row=(value); end
 
     sig { returns(T::Boolean) }
@@ -1300,10 +1516,10 @@ class CsvImportChunk
     sig { returns(T::Boolean) }
     def start_row_came_from_user?; end
 
-    sig { returns(T.nilable([::Integer, ::Integer])) }
+    sig { returns(T.nilable([T.nilable(::Integer), T.nilable(::Integer)])) }
     def start_row_change; end
 
-    sig { returns(T.nilable([::Integer, ::Integer])) }
+    sig { returns(T.nilable([T.nilable(::Integer), T.nilable(::Integer)])) }
     def start_row_change_to_be_saved; end
 
     sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
@@ -1312,7 +1528,7 @@ class CsvImportChunk
     sig { returns(T.nilable(::Integer)) }
     def start_row_in_database; end
 
-    sig { returns(T.nilable([::Integer, ::Integer])) }
+    sig { returns(T.nilable([T.nilable(::Integer), T.nilable(::Integer)])) }
     def start_row_previous_change; end
 
     sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
@@ -1418,6 +1634,12 @@ class CsvImportChunk
     def updated_at_will_change!; end
 
     sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
+    def will_save_change_to_byte_size?(from: T.unsafe(nil), to: T.unsafe(nil)); end
+
+    sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
+    def will_save_change_to_checksum?(from: T.unsafe(nil), to: T.unsafe(nil)); end
+
+    sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
     def will_save_change_to_chunk_index?(from: T.unsafe(nil), to: T.unsafe(nil)); end
 
     sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
@@ -1425,6 +1647,9 @@ class CsvImportChunk
 
     sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
     def will_save_change_to_csv_import_id?(from: T.unsafe(nil), to: T.unsafe(nil)); end
+
+    sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
+    def will_save_change_to_end_byte?(from: T.unsafe(nil), to: T.unsafe(nil)); end
 
     sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
     def will_save_change_to_end_row?(from: T.unsafe(nil), to: T.unsafe(nil)); end
@@ -1452,6 +1677,9 @@ class CsvImportChunk
 
     sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
     def will_save_change_to_s3_key?(from: T.unsafe(nil), to: T.unsafe(nil)); end
+
+    sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
+    def will_save_change_to_start_byte?(from: T.unsafe(nil), to: T.unsafe(nil)); end
 
     sig { params(from: T.untyped, to: T.untyped).returns(T::Boolean) }
     def will_save_change_to_start_row?(from: T.unsafe(nil), to: T.unsafe(nil)); end

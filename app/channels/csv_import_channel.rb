@@ -23,7 +23,9 @@ class CsvImportChannel < ApplicationCable::Channel
         {
           event: "split_started",
           csv_import_id: csv_import.id,
+          input_kind: csv_import.input_kind,
           total_rows: csv_import.total_rows,
+          total_bytes: csv_import.total_bytes,
           total_chunks: csv_import.total_chunks,
         },
       )
@@ -40,6 +42,7 @@ class CsvImportChannel < ApplicationCable::Channel
           status: chunk.status,
           processed_rows: chunk.processed_rows,
           failed_rows: chunk.failed_rows,
+          byte_size: chunk.byte_size,
         },
       )
     end
@@ -53,6 +56,8 @@ class CsvImportChannel < ApplicationCable::Channel
           status: csv_import.status,
           processed_rows: csv_import.processed_rows,
           failed_rows: csv_import.failed_rows,
+          processed_bytes: csv_import.processed_bytes,
+          failed_bytes: csv_import.failed_bytes,
         },
       )
     end

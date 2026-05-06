@@ -27,7 +27,8 @@ class CsvImportRetryService
       end
 
       # ワーカーがDB状態を見られるようトランザクションの外でenqueueする
-      ActiveJob.perform_all_later(chunk_ids.map { |cid| CsvChunkJob.new(cid) })
+      chunks = CsvImportChunk.includes(:csv_import).where(id: chunk_ids).order(:chunk_index)
+      ActiveJob.perform_all_later(chunks.map { |chunk| ImportChunkJobFactory.build(chunk) })
 
       Result.new(retried: chunk_ids.size, chunk_ids: chunk_ids)
     end

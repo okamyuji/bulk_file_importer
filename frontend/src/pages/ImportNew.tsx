@@ -7,6 +7,7 @@ import { api } from "../lib/api";
 export function ImportNew() {
   const nav = useNavigate();
   const [file, setFile] = useState<File | null>(null);
+  const [inputKind, setInputKind] = useState<"csv" | "binary">("csv");
   const [targetKind, setTargetKind] = useState<"sales_record" | "ledger_entry">(
     "sales_record",
   );
@@ -15,12 +16,32 @@ export function ImportNew() {
   const [error, setError] = useState<string | null>(null);
 
   const onDrop = useCallback((accepted: File[]) => {
-    if (accepted[0]) setFile(accepted[0]);
+    if (accepted[0]) {
+      setError(null);
+      setFile(accepted[0]);
+    }
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "text/csv": [".csv"], "application/vnd.ms-excel": [".csv"] },
+    onDropRejected: () => {
+      setFile(null);
+      setError(
+        inputKind === "csv"
+          ? "CSVファイルのみアップロードできます。"
+          : "JPEG/PNG/WebP/MP4/MOVファイルのみアップロードできます。",
+      );
+    },
+    accept:
+      inputKind === "csv"
+        ? { "text/csv": [".csv"], "application/vnd.ms-excel": [".csv"] }
+        : {
+            "image/jpeg": [".jpg", ".jpeg"],
+            "image/png": [".png"],
+            "image/webp": [".webp"],
+            "video/mp4": [".mp4"],
+            "video/quicktime": [".mov"],
+          },
     maxFiles: 1,
   });
 
@@ -29,8 +50,11 @@ export function ImportNew() {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await api.createImport(file, targetKind, (p) =>
-        setUploadPct(p),
+      const res = await api.createImport(
+        file,
+        inputKind === "binary" ? "binary_asset" : targetKind,
+        inputKind,
+        (p) => setUploadPct(p),
       );
       nav(`/imports/${res.data.id}`);
     } catch (err) {
@@ -43,28 +67,49 @@ export function ImportNew() {
   return (
     <section className="space-y-6">
       <header>
-        <h2 className="text-xl font-semibold">New CSV import</h2>
+        <h2 className="text-xl font-semibold">New import</h2>
         <p className="text-sm text-slate-400">
-          Upload a CSV up to several MB. Rows are streamed, chunked, and
-          validated.
+          Upload a CSV or supported media file. Data is streamed, chunked, and
+          processed in the background.
         </p>
       </header>
 
       <div className="flex gap-2 text-sm">
-        {(["sales_record", "ledger_entry"] as const).map((k) => (
+        {(["csv", "binary"] as const).map((k) => (
           <button
             key={k}
-            onClick={() => setTargetKind(k)}
+            onClick={() => {
+              setInputKind(k);
+              setFile(null);
+            }}
             className={clsx("rounded-full border px-3 py-1.5 transition", {
-              "bg-sky-500 border-sky-500 text-slate-950": targetKind === k,
+              "bg-sky-500 border-sky-500 text-slate-950": inputKind === k,
               "bg-transparent border-slate-700 text-slate-300 hover:border-slate-600":
-                targetKind !== k,
+                inputKind !== k,
             })}
           >
             {k}
           </button>
         ))}
       </div>
+
+      {inputKind === "csv" && (
+        <div className="flex gap-2 text-sm">
+          {(["sales_record", "ledger_entry"] as const).map((k) => (
+            <button
+              key={k}
+              onClick={() => setTargetKind(k)}
+              className={clsx("rounded-full border px-3 py-1.5 transition", {
+                "bg-sky-500 border-sky-500 text-slate-950": targetKind === k,
+                "bg-transparent border-slate-700 text-slate-300 hover:border-slate-600":
+                  targetKind !== k,
+              })}
+            >
+              {k}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div
         {...getRootProps()}
@@ -85,7 +130,8 @@ export function ImportNew() {
           </div>
         ) : (
           <p className="text-slate-400">
-            Drag & drop a CSV, or click to pick one
+            Drag & drop a {inputKind === "csv" ? "CSV" : "media file"}, or click
+            to pick one
           </p>
         )}
       </div>
