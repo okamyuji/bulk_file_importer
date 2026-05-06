@@ -32,23 +32,29 @@ RSpec.describe BinaryChunkJob do
     )
   end
 
-  it "does not finish an import while a retryable binary chunk failure can still retry" do
+  it "does not enqueue the finalizer while a retryable binary chunk failure can still retry" do
     job = described_class.new
     allow(job).to receive(:executions).and_return(2)
 
     expect { job.perform(chunk.id) }.to raise_error(StandardError, /missing/)
 
+    # 再試行中なのでFinalizerは起動しない。remaining_chunksも変更しない（rescueでは
+    # finish_one_chunk! を呼ばない方針）。
     expect(csv_import.reload.remaining_chunks).to eq(1)
+    expect(csv_import.csv_import_chunks.find(chunk.id).status).to eq("failed")
     expect(CsvImportFinalizerJob).not_to have_been_enqueued
   end
 
-  it "finishes the import on the final binary chunk retry failure" do
+  it "enqueues the finalizer once the final retry has failed permanently" do
     job = described_class.new
     allow(job).to receive(:executions).and_return(3)
 
     expect { job.perform(chunk.id) }.to raise_error(StandardError, /missing/)
 
-    expect(csv_import.reload.remaining_chunks).to eq(0)
+    # 永続的失敗が確定した時点でFinalizerに通知する。Finalizer自身が
+    # 「pending/processing なチャンクが残っているか」を再確認する冪等構造のため、
+    # remaining_chunksの減算には依存しない。
+    expect(csv_import.csv_import_chunks.find(chunk.id).status).to eq("failed")
     expect(CsvImportFinalizerJob).to have_been_enqueued.with(csv_import.id)
   end
 end

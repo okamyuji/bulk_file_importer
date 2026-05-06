@@ -29,7 +29,11 @@ class BinaryChunkJob < ApplicationJob
     )
 
     CsvImportChannel.broadcast_chunk_completed(chunk)
-    CsvImportFinalizerJob.perform_later(csv_import.id) if csv_import.finish_one_chunk!
+    # CsvImportFinalizerJobは「全チャンクがterminal状態か」と「BinaryAssetが既に
+    # completedか」を自前で確認するため、チャンクごとの冪等enqueueで安全に動作する。
+    # 失敗チャンクが remaining_chunks を減らさない問題を抱えないよう、binary側は
+    # finish_one_chunk! のカウンタに依存せず、常にFinalizerをenqueueする。
+    CsvImportFinalizerJob.perform_later(csv_import.id)
   rescue ActiveRecord::RecordNotFound
     raise
   rescue StandardError => e
@@ -46,10 +50,10 @@ class BinaryChunkJob < ApplicationJob
       error_class: e.class.name,
       error_message: e.message[0, 200],
     )
-    if csv_import_id && final_retry_attempt?
-      csv_import = CsvImport.find_by(id: csv_import_id)
-      CsvImportFinalizerJob.perform_later(csv_import_id) if csv_import&.finish_one_chunk!
-    end
+    # 再試行が残っている間はFinalizerを起動しない。最終リトライで初めてチャンクが
+    # 「永続的失敗」とみなせるため、ここでだけ直接enqueueする（finish_one_chunk!を
+    # rescueから呼ぶと、retry中の一時的失敗まで残数を減らしてしまうため避ける）。
+    CsvImportFinalizerJob.perform_later(csv_import_id) if csv_import_id && final_retry_attempt?
     raise
   end
 
