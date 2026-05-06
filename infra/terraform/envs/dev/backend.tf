@@ -3,10 +3,10 @@
 #
 # terraform {
 #   backend "s3" {
-#     bucket         = "csv-bulk-importer-terraform-state"
+#     bucket         = "bulk-file-importer-terraform-state"
 #     key            = "dev/terraform.tfstate"
 #     region         = "ap-northeast-1"
-#     dynamodb_table = "csv-bulk-importer-terraform-locks"
+#     dynamodb_table = "bulk-file-importer-terraform-locks"
 #     encrypt        = true
 #   }
 # }

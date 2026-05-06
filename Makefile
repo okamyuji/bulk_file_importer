@@ -108,11 +108,11 @@ build: build.web build.worker ## Build both web and worker images
 
 .PHONY: build.web
 build.web: ## Build web Docker image
-	docker build --target web -t csv-bulk-importer:web .
+	docker build --target web -t bulk-file-importer:web .
 
 .PHONY: build.worker
 build.worker: ## Build worker Docker image
-	docker build --target worker -t csv-bulk-importer:worker .
+	docker build --target worker -t bulk-file-importer:worker .
 
 # ---------------------------------------------------------------------------
 # Terraform

@@ -15,7 +15,7 @@ module AppS3
     end
 
     def bucket
-      @bucket ||= ENV.fetch("S3_BUCKET", "csv-bulk-importer-dev")
+      @bucket ||= ENV.fetch("S3_BUCKET", "bulk-file-importer-dev")
     end
 
     def reset!

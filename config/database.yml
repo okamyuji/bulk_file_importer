@@ -13,54 +13,54 @@ default: &default
 development:
   primary:
     <<: *default
-    database: csv_bulk_importer_development
+    database: bulk_file_importer_development
   cache:
     <<: *default
-    database: csv_bulk_importer_development_cache
+    database: bulk_file_importer_development_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *default
-    database: csv_bulk_importer_development_queue
+    database: bulk_file_importer_development_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *default
-    database: csv_bulk_importer_development_cable
+    database: bulk_file_importer_development_cable
     migrations_paths: db/cable_migrate
 
 test:
   primary:
     <<: *default
-    database: csv_bulk_importer_test
+    database: bulk_file_importer_test
   cache:
     <<: *default
-    database: csv_bulk_importer_test_cache
+    database: bulk_file_importer_test_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *default
-    database: csv_bulk_importer_test_queue
+    database: bulk_file_importer_test_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *default
-    database: csv_bulk_importer_test_cable
+    database: bulk_file_importer_test_cable
     migrations_paths: db/cable_migrate
 
 production:
   primary: &primary_production
     <<: *default
-    database: <%= ENV.fetch("DATABASE_NAME", "csv_bulk_importer") %>
+    database: <%= ENV.fetch("DATABASE_NAME", "bulk_file_importer") %>
     username: <%= ENV.fetch("DATABASE_USERNAME") { ENV.fetch("DB_USERNAME", "admin") } %>
     password: <%= ENV.fetch("DATABASE_PASSWORD") { ENV.fetch("DB_PASSWORD", "") } %>
     host: <%= ENV.fetch("DATABASE_HOST") { ENV.fetch("DB_HOST", "127.0.0.1") } %>
     port: <%= ENV.fetch("DATABASE_PORT") { ENV.fetch("DB_PORT", 3306) } %>
   cache:
     <<: *primary_production
-    database: <%= ENV.fetch("DATABASE_NAME", "csv_bulk_importer") %>_cache
+    database: <%= ENV.fetch("DATABASE_NAME", "bulk_file_importer") %>_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
-    database: <%= ENV.fetch("DATABASE_NAME", "csv_bulk_importer") %>_queue
+    database: <%= ENV.fetch("DATABASE_NAME", "bulk_file_importer") %>_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
-    database: <%= ENV.fetch("DATABASE_NAME", "csv_bulk_importer") %>_cable
+    database: <%= ENV.fetch("DATABASE_NAME", "bulk_file_importer") %>_cable
     migrations_paths: db/cable_migrate

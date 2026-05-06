@@ -18,12 +18,12 @@
 #
 # Build:
 #   docker login dhi.io
-#   docker build -t csv-bulk-importer:web .
-#   docker build -t csv-bulk-importer:worker --target worker .
+#   docker build -t bulk-file-importer:web .
+#   docker build -t bulk-file-importer:worker --target worker .
 #
 # Run:
-#   docker run -p 8080:8080 -e RAILS_MASTER_KEY=<key> csv-bulk-importer:web
-#   docker run -e RAILS_MASTER_KEY=<key> csv-bulk-importer:worker
+#   docker run -p 8080:8080 -e RAILS_MASTER_KEY=<key> bulk-file-importer:web
+#   docker run -e RAILS_MASTER_KEY=<key> bulk-file-importer:worker
 
 ARG RUBY_TAG=3.4-debian12
 ARG NODE_TAG=22-debian12

@@ -13,9 +13,9 @@ amazon_localstack:
   access_key_id: <%= ENV.fetch("AWS_ACCESS_KEY_ID", "test") %>
   secret_access_key: <%= ENV.fetch("AWS_SECRET_ACCESS_KEY", "test") %>
   region: <%= ENV.fetch("AWS_REGION", "us-east-1") %>
-  bucket: <%= ENV.fetch("S3_BUCKET", "csv-bulk-importer-dev") %>
+  bucket: <%= ENV.fetch("S3_BUCKET", "bulk-file-importer-dev") %>
 
 amazon:
   service: S3
   region: <%= ENV.fetch("AWS_REGION", "us-east-1") %>
-  bucket: <%= ENV.fetch("S3_BUCKET", "csv-bulk-importer-dev-csv-uploads") %>
+  bucket: <%= ENV.fetch("S3_BUCKET", "bulk-file-importer-dev-csv-uploads") %>

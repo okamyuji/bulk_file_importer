@@ -17,7 +17,7 @@ variable "region" {
 variable "db_name" {
   description = "Name of the Aurora MySQL database"
   type        = string
-  default     = "csv_bulk_importer_prod"
+  default     = "bulk_file_importer_prod"
 }
 
 variable "db_username" {

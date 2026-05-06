@@ -1,7 +1,7 @@
 services:
   localstack:
     image: localstack/localstack:3.8
-    container_name: csv-bulk-importer-localstack
+    container_name: bulk-file-importer-localstack
     ports:
       - "4566:4566"
     environment:
