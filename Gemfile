@@ -13,7 +13,7 @@ gem "mysql2", "~> 0.5"
 gem "puma", ">= 5.0"
 gem "bootsnap", require: false
 gem "thruster", require: false
-gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 2.0"
 # DHI distroless ランタイムにはシステム tzdata が無く、ActiveSupport が
 # `TZInfo::DataSourceNotFound` で起動失敗する。Ruby 側で時刻データを解決する
 # ため、platforms 制限を外して全 OS で読み込ませる。
