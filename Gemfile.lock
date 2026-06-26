@@ -415,7 +415,7 @@ GEM
     sorbet-static-and-runtime (0.6.13312)
       sorbet (= 0.6.13312)
       sorbet-runtime (= 0.6.13312)
-    spoom (1.7.12)
+    spoom (1.8.2)
       erubi (>= 1.10.0)
       prism (>= 0.28.0)
       rbi (>= 0.3.14)
@@ -682,7 +682,7 @@ CHECKSUMS
   sorbet-static (0.6.13312-universal-darwin) sha256=b01346ae1bd31594b79ab461a6df945e6896b638ae4c3543e2731123866737ca
   sorbet-static (0.6.13312-x86_64-linux) sha256=c955da3dbf9f494ed187b4a26ebda857d2c24008c61575094ecc37a8e3a4510e
   sorbet-static-and-runtime (0.6.13312) sha256=a0f8572bbee80b21e9f2879b9d1a866b67b6ee17227bb49c7888a08bd92bd5f5
-  spoom (1.7.12) sha256=67f0b1f835158dba4f19c03ff75b7b7e285dce9165b7b77c2c78cbf54ebf3013
+  spoom (1.8.2) sha256=1253232b9d85ed140c9d5337ad2c74f03af89a70e3c602f2b2438eba34d0bd2f
   stringio (3.2.0) sha256=c37cb2e58b4ffbd33fe5cd948c05934af997b36e0b6ca6fdf43afa234cf222e1
   syntax_tree (6.3.0) sha256=56e25a9692c798ec94c5442fe94c5e94af76bef91edc8bb02052cbdecf35f13d
   tapioca (0.19.2) sha256=938731b07811aee8d23871b1aee8861d464fbaf2cfffbf79a62b0c869a5120ec

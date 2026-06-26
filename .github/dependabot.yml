@@ -5,6 +5,14 @@ updates:
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
+  groups:
+    sorbet:
+      patterns:
+        - "sorbet"
+        - "sorbet-*"
+        - "tapioca"
+        - "spoom"
+        - "rbi"
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
