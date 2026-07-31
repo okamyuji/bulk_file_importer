@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { clsx } from "clsx";
 import { api } from "../lib/api";
 

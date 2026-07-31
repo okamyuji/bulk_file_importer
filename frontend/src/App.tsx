@@ -7,7 +7,7 @@ import {
   Link,
   Outlet,
   useNavigate,
-} from "react-router-dom";
+} from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuth } from "./stores/auth";
 import { Login } from "./pages/Login";
