@@ -398,15 +398,15 @@ GEM
       fugit (~> 1.11)
       railties (>= 7.1)
       thor (>= 1.3.1)
-    sorbet (0.6.13354)
-      sorbet-static (= 0.6.13354)
-    sorbet-runtime (0.6.13354)
-    sorbet-static (0.6.13354-aarch64-linux)
-    sorbet-static (0.6.13354-universal-darwin)
-    sorbet-static (0.6.13354-x86_64-linux)
-    sorbet-static-and-runtime (0.6.13354)
-      sorbet (= 0.6.13354)
-      sorbet-runtime (= 0.6.13354)
+    sorbet (0.6.13363)
+      sorbet-static (= 0.6.13363)
+    sorbet-runtime (0.6.13363)
+    sorbet-static (0.6.13363-aarch64-linux)
+    sorbet-static (0.6.13363-universal-darwin)
+    sorbet-static (0.6.13363-x86_64-linux)
+    sorbet-static-and-runtime (0.6.13363)
+      sorbet (= 0.6.13363)
+      sorbet-runtime (= 0.6.13363)
     spoom (1.8.2)
       erubi (>= 1.10.0)
       prism (>= 0.28.0)
@@ -663,12 +663,12 @@ CHECKSUMS
   solid_cable (4.0.2) sha256=084636a67679ad00d23088b33c84047e614bcf41ee559db24b414d83cdc42d03
   solid_cache (1.0.10) sha256=bc05a2fb3ac78a6f43cbb5946679cf9db67dd30d22939ededc385cb93e120d41
   solid_queue (1.5.0) sha256=329f29caab9cc68eefe489013eb5a38ea4a66708ed2bee301384dbed91890f7f
-  sorbet (0.6.13354) sha256=d50a05573acbf7557a321602f8c71e45cc02d04513f5582630cdc8e2e384bb44
-  sorbet-runtime (0.6.13354) sha256=1e9de4e2c445ed8de4157fb4ce96443e345952f740c74393e9d9839c7fb01be8
-  sorbet-static (0.6.13354-aarch64-linux) sha256=d9080f72ea34977a2151fcaf28593e08d2fecd0abfbaa5fdfd3190f938d1d91f
-  sorbet-static (0.6.13354-universal-darwin) sha256=03cf873f5baacd1e8e34ae9c89eec2aa2f8dda3d1931ec341b26a9f2121cf177
-  sorbet-static (0.6.13354-x86_64-linux) sha256=8c467a9f8a9662a9976d77c4425dba580844c45f89be834820aa3b77130c3d7c
-  sorbet-static-and-runtime (0.6.13354) sha256=ff0f9fa83b49f90418e1c5abd790283f1ca08d56c9ab7659160f505982a075e7
+  sorbet (0.6.13363) sha256=e9fb44bd815617f698ec69547b3901c35fcee5e0f197900f2d64857e2c5ad01e
+  sorbet-runtime (0.6.13363) sha256=f1f0b2e946fb3cd76b9d8e3d85459cdaf7f5466331a400cafcf008e508b6d2c3
+  sorbet-static (0.6.13363-aarch64-linux) sha256=e8177fceb59678b9449ed94ce8c115783a73b14f5d7597e2a51029f3230fc21e
+  sorbet-static (0.6.13363-universal-darwin) sha256=b2e4863b325d0d3d3764ebbaca4fa08ef08f8c1d1b891e10ec6391bf624413b9
+  sorbet-static (0.6.13363-x86_64-linux) sha256=c5252f9e05d4f8b14686ffef928d5bb56a8e441d18f4d256b42c93471d1e1e54
+  sorbet-static-and-runtime (0.6.13363) sha256=12d8b45cb1c51911398737a3e40fd50c990a130302469b0710f60d14e75dacff
   spoom (1.8.2) sha256=1253232b9d85ed140c9d5337ad2c74f03af89a70e3c602f2b2438eba34d0bd2f
   syntax_tree (6.3.0) sha256=56e25a9692c798ec94c5442fe94c5e94af76bef91edc8bb02052cbdecf35f13d
   tapioca (0.19.2) sha256=938731b07811aee8d23871b1aee8861d464fbaf2cfffbf79a62b0c869a5120ec
