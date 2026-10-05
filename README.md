@@ -262,10 +262,12 @@ terraform -chdir=infra/terraform/envs/prod init \
   -backend-config="region=<バケットのリージョン>"
 ```
 
+本番環境は専用のcredentials（`config/credentials/production.yml.enc`）を使います。`rails_master_key`には`config/credentials/production.key`の値を渡してください。`config/master.key`の値では本番のcredentialsを復号できません。`production.key`はリポジトリに含めず、パスワードマネージャーで共有してください。
+
 `rails_master_key`はstateにもplanファイルにも保存されません。planとapplyのたびに環境変数で渡してください。
 
 ```bash
-export TF_VAR_rails_master_key="$(cat config/master.key)"
+export TF_VAR_rails_master_key="$(cat config/credentials/production.key)"
 terraform -chdir=infra/terraform/envs/prod plan
 ```
 

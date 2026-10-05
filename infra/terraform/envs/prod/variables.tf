@@ -42,7 +42,7 @@ variable "certificate_arn" {
 }
 
 variable "rails_master_key" {
-  description = "Rails master key (from config/master.key)"
+  description = "Rails production credentials key (the value of config/credentials/production.key)"
   type        = string
   sensitive   = true
   ephemeral   = true
