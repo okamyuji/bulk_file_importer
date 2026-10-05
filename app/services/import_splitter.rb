@@ -16,21 +16,17 @@ class ImportSplitter
   end
 
   def call
+    splitter_class.call(io: @io, s3_prefix: @file_import.s3_prefix_or_default, bucket: @bucket, s3_client: @s3_client)
+  end
+
+  private
+
+  def splitter_class
     case @file_import.input_kind
     when "csv"
-      CsvChunkSplitter.call(
-        io: @io,
-        s3_prefix: @file_import.s3_prefix_or_default,
-        bucket: @bucket,
-        s3_client: @s3_client,
-      )
+      CsvChunkSplitter
     when "binary"
-      BinaryChunkSplitter.call(
-        io: @io,
-        s3_prefix: @file_import.s3_prefix_or_default,
-        bucket: @bucket,
-        s3_client: @s3_client,
-      )
+      BinaryChunkSplitter
     else
       raise ArgumentError, "unknown input_kind: #{@file_import.input_kind.inspect}"
     end
