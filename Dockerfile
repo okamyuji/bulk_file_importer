@@ -116,9 +116,11 @@ COPY . .
 COPY --from=frontend /app/frontend/dist /rails/public/
 
 # precompile はダミーの SECRET_KEY_BASE で起動できるように Rails 側で許容済み。
+# SECRET_KEY_BASE_DUMMY は tmp/local_secret.txt に鍵を書き出す。イメージに残すと
+# 実行時に SECRET_KEY_BASE_DUMMY が付いたとき全コンテナ共通の既知の鍵になるので消す。
 RUN bundle exec bootsnap precompile --gemfile app/ lib/ && \
     SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile && \
-    rm -rf tmp/cache tmp/pids log/*.log
+    rm -rf tmp/cache tmp/pids tmp/local_secret.txt log/*.log
 
 # ---------------------------------------------------------------------------
 # Stage 4: web — distroless ランタイム。shell も bundle バイナリも無い前提。
