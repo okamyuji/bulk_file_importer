@@ -13,10 +13,24 @@ variable "csv_bucket_arn" {
   type        = string
 }
 
+variable "ecr_repository_arn" {
+  description = "ARN of the ECR repository the execution role pulls the application image from"
+  type        = string
+
+  validation {
+    condition     = can(regex("^arn:aws[a-z-]*:ecr:[a-z0-9-]+:[0-9]{12}:repository/.+$", var.ecr_repository_arn))
+    error_message = "ecr_repository_arn must be an ECR repository ARN."
+  }
+}
+
 variable "secrets_arns" {
   description = "List of Secrets Manager secret ARNs the execution role injects into containers"
   type        = list(string)
-  default     = []
+
+  validation {
+    condition     = length(var.secrets_arns) > 0
+    error_message = "secrets_arns must list at least one secret ARN."
+  }
 }
 
 variable "tags" {

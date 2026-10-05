@@ -1,6 +1,10 @@
 locals {
   availability_zones = ["${var.region}a", "${var.region}c"]
 
+  ecr_image_uri_pattern = "^(?P<account>[0-9]{12})\\.dkr\\.ecr\\.(?P<region>[a-z0-9-]+)\\.amazonaws\\.com/(?P<repository>[a-z0-9._/-]+)(?::[A-Za-z0-9._-]+|@sha256:[0-9a-f]{64})$"
+  ecr_image             = regex(local.ecr_image_uri_pattern, var.ecr_image_uri)
+  ecr_repository_arn    = "arn:aws:ecr:${local.ecr_image.region}:${local.ecr_image.account}:repository/${local.ecr_image.repository}"
+
   common_tags = {
     Project     = var.project
     Environment = var.environment
@@ -105,9 +109,10 @@ module "s3_csv_bucket" {
 module "iam" {
   source = "../../modules/iam"
 
-  project        = var.project
-  environment    = var.environment
-  csv_bucket_arn = module.s3_csv_bucket.bucket_arn
+  project            = var.project
+  environment        = var.environment
+  csv_bucket_arn     = module.s3_csv_bucket.bucket_arn
+  ecr_repository_arn = local.ecr_repository_arn
   secrets_arns = [
     aws_secretsmanager_secret.rails_master_key.arn,
     module.rds_aurora.master_secret_arn,

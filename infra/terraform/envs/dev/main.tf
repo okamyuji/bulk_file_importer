@@ -118,9 +118,10 @@ module "s3_csv_bucket" {
 module "iam" {
   source = "../../modules/iam"
 
-  project        = var.project
-  environment    = var.environment
-  csv_bucket_arn = module.s3_csv_bucket.bucket_arn
+  project            = var.project
+  environment        = var.environment
+  csv_bucket_arn     = module.s3_csv_bucket.bucket_arn
+  ecr_repository_arn = module.ecr.repository_arn
   secrets_arns = [
     aws_secretsmanager_secret.rails_master_key.arn,
     module.rds_aurora.master_secret_arn,

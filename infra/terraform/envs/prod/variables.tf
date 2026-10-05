@@ -29,6 +29,11 @@ variable "db_username" {
 variable "ecr_image_uri" {
   description = "Full ECR image URI including tag for the Rails application"
   type        = string
+
+  validation {
+    condition     = can(regex(local.ecr_image_uri_pattern, var.ecr_image_uri))
+    error_message = "ecr_image_uri must be a private ECR image URI with a tag or sha256 digest (<account>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>)."
+  }
 }
 
 variable "certificate_arn" {
