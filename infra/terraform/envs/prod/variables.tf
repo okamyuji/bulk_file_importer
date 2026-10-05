@@ -42,3 +42,13 @@ variable "rails_master_key" {
   type        = string
   sensitive   = true
 }
+
+variable "frontend_origin" {
+  description = "Comma-separated origins allowed by CORS (e.g. https://app.example.com)"
+  type        = string
+
+  validation {
+    condition     = trimspace(var.frontend_origin) != ""
+    error_message = "frontend_origin must not be empty."
+  }
+}

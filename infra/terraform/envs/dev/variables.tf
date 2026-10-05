@@ -31,3 +31,9 @@ variable "rails_master_key" {
   type        = string
   sensitive   = true
 }
+
+variable "frontend_origin" {
+  description = "Comma-separated origins allowed by CORS"
+  type        = string
+  default     = "http://localhost:5173"
+}

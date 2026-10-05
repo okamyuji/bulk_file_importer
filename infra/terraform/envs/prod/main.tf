@@ -161,6 +161,7 @@ module "ecs_service_web" {
     DATABASE_USERNAME   = var.db_username
     S3_BUCKET           = module.s3_csv_bucket.bucket_name
     AWS_REGION          = var.region
+    FRONTEND_ORIGIN     = var.frontend_origin
   }
 
   secrets = {
@@ -203,6 +204,7 @@ module "ecs_service_worker" {
     DATABASE_USERNAME   = var.db_username
     S3_BUCKET           = module.s3_csv_bucket.bucket_name
     AWS_REGION          = var.region
+    FRONTEND_ORIGIN     = var.frontend_origin
   }
 
   secrets = {
