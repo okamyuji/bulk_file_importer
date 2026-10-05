@@ -52,9 +52,17 @@ RSpec.describe "Api::V1::FileImports", type: :request do
   describe "GET /api/v1/file_imports/:id" do
     it "returns 403 when another user requests it" do
       imp = create(:file_import, user: alice)
+      allow(AuditLogger).to receive(:event)
       get "/api/v1/file_imports/#{imp.id}", headers: auth_headers(bob)
       expect(response).to have_http_status(:forbidden)
       expect(JSON.parse(response.body)["error"]).to eq("forbidden")
+      expect(AuditLogger).to have_received(:event).with(
+        "authz.forbidden",
+        policy: "FileImportPolicy",
+        query: "show?",
+        target_type: "FileImport",
+        target_id: imp.id,
+      )
     end
   end
 

@@ -20,5 +20,8 @@ jobs:
       pull-requests: write
     uses: okamyuji/reusable-workflows/.github/workflows/rails-ci.yml@v1
     with:
-      run-tests: false
+      with-mysql: true
+      # サービスコンテナの root はパスワード無し。空の DB_PASSWORD を渡し、
+      # database.yml の既定値と .env.test（dotenv は既存の値を上書きしない）を退ける。
+      test-command: "export DB_PASSWORD= && bin/rails db:test:prepare && bundle exec rspec"
       dependabot-recreate: true

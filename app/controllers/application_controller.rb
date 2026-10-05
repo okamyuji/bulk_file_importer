@@ -3,21 +3,11 @@
 
 class ApplicationController < ActionController::Base
   include Pundit::Authorization
+  include AuthorizationErrorHandling
 
   allow_browser versions: :modern
 
   before_action :set_audit_context
-
-  rescue_from Pundit::NotAuthorizedError do |exception|
-    AuditLogger.event(
-      "authz.forbidden",
-      policy: exception.policy.class.name,
-      query: exception.query,
-      target_type: exception.record.class.name,
-      target_id: exception.record.respond_to?(:id) ? exception.record.id : nil,
-    )
-    render json: { error: "forbidden" }, status: :forbidden
-  end
 
   private
 

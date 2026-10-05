@@ -45,6 +45,22 @@ RSpec.describe BinaryChunkJob do
     expect(FileImportFinalizerJob).not_to have_been_enqueued
   end
 
+  it "records the failure details and logs binary_chunk.failed" do
+    allow(AuditLogger).to receive(:event)
+
+    expect { described_class.new.perform(chunk.id) }.to raise_error(StandardError, /missing/)
+
+    chunk.reload
+    expect(chunk.error_details).to eq([{ "fatal" => "RuntimeError" }])
+    expect(chunk.retry_count).to eq(1)
+    expect(AuditLogger).to have_received(:event).with(
+      "binary_chunk.failed",
+      chunk_id: chunk.id,
+      error_class: a_kind_of(String),
+      error_message: a_string_matching(/missing/),
+    )
+  end
+
   it "enqueues the finalizer once the final retry has failed permanently" do
     job = described_class.new
     allow(job).to receive(:executions).and_return(3)

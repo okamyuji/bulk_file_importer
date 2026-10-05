@@ -30,4 +30,11 @@ variable "rails_master_key" {
   description = "Rails master key (from config/master.key)"
   type        = string
   sensitive   = true
+  ephemeral   = true
+}
+
+variable "frontend_origin" {
+  description = "Comma-separated origins allowed by CORS"
+  type        = string
+  default     = "http://localhost:5173"
 }

@@ -1,6 +1,10 @@
 locals {
   availability_zones = ["${var.region}a", "${var.region}c"]
 
+  ecr_image_uri_pattern = "^(?P<account>[0-9]{12})\\.dkr\\.ecr\\.(?P<region>[a-z0-9-]+)\\.amazonaws\\.com/(?P<repository>[a-z0-9._/-]+)(?::[A-Za-z0-9._-]+|@sha256:[0-9a-f]{64})$"
+  ecr_image             = regex(local.ecr_image_uri_pattern, var.ecr_image_uri)
+  ecr_repository_arn    = "arn:aws:ecr:${local.ecr_image.region}:${local.ecr_image.account}:repository/${local.ecr_image.repository}"
+
   common_tags = {
     Project     = var.project
     Environment = var.environment
@@ -14,13 +18,13 @@ locals {
 module "network" {
   source = "../../modules/network"
 
-  project            = var.project
-  environment        = var.environment
-  vpc_cidr           = "10.1.0.0/16"
-  availability_zones = local.availability_zones
+  project              = var.project
+  environment          = var.environment
+  vpc_cidr             = "10.1.0.0/16"
+  availability_zones   = local.availability_zones
   public_subnet_cidrs  = ["10.1.1.0/24", "10.1.2.0/24"]
   private_subnet_cidrs = ["10.1.11.0/24", "10.1.12.0/24"]
-  single_nat_gateway = false
+  single_nat_gateway   = false
 
   tags = local.common_tags
 }
@@ -37,6 +41,24 @@ module "observability" {
   retention_in_days = 30
 
   tags = local.common_tags
+}
+
+################################################################################
+# SecretsManager
+################################################################################
+
+resource "aws_secretsmanager_secret" "rails_master_key" {
+  name        = "${var.project}-${var.environment}-rails-master-key"
+  description = "Rails master key for credentials decryption"
+
+  tags = local.common_tags
+}
+
+resource "aws_secretsmanager_secret_version" "rails_master_key" {
+  secret_id        = aws_secretsmanager_secret.rails_master_key.id
+  secret_string_wo = var.rails_master_key
+  # write-only の値は state に無く差分を取れない。鍵を替えたらこの数を上げないと新しい値が送られない。
+  secret_string_wo_version = 1
 }
 
 ################################################################################
@@ -71,11 +93,11 @@ module "rds_aurora" {
 module "s3_csv_bucket" {
   source = "../../modules/s3_csv_bucket"
 
-  project                    = var.project
-  environment                = var.environment
+  project                     = var.project
+  environment                 = var.environment
   csv_imports_expiration_days = 7
   originals_expiration_days   = 90
-  force_destroy              = false
+  force_destroy               = false
 
   tags = local.common_tags
 }
@@ -87,9 +109,14 @@ module "s3_csv_bucket" {
 module "iam" {
   source = "../../modules/iam"
 
-  project        = var.project
-  environment    = var.environment
-  csv_bucket_arn = module.s3_csv_bucket.bucket_arn
+  project            = var.project
+  environment        = var.environment
+  csv_bucket_arn     = module.s3_csv_bucket.bucket_arn
+  ecr_repository_arn = local.ecr_repository_arn
+  secrets_arns = [
+    aws_secretsmanager_secret.rails_master_key.arn,
+    module.rds_aurora.master_secret_arn,
+  ]
 
   tags = local.common_tags
 }
@@ -138,7 +165,15 @@ module "ecs_service_web" {
     DATABASE_HOST       = module.rds_aurora.cluster_endpoint
     DATABASE_PORT       = tostring(module.rds_aurora.port)
     DATABASE_NAME       = module.rds_aurora.database_name
-    S3_BUCKET_NAME      = module.s3_csv_bucket.bucket_name
+    DATABASE_USERNAME   = var.db_username
+    S3_BUCKET           = module.s3_csv_bucket.bucket_name
+    AWS_REGION          = var.region
+    FRONTEND_ORIGIN     = var.frontend_origin
+  }
+
+  secrets = {
+    RAILS_MASTER_KEY  = aws_secretsmanager_secret.rails_master_key.arn
+    DATABASE_PASSWORD = "${module.rds_aurora.master_secret_arn}:password::"
   }
 
   tags = local.common_tags
@@ -173,7 +208,15 @@ module "ecs_service_worker" {
     DATABASE_HOST       = module.rds_aurora.cluster_endpoint
     DATABASE_PORT       = tostring(module.rds_aurora.port)
     DATABASE_NAME       = module.rds_aurora.database_name
-    S3_BUCKET_NAME      = module.s3_csv_bucket.bucket_name
+    DATABASE_USERNAME   = var.db_username
+    S3_BUCKET           = module.s3_csv_bucket.bucket_name
+    AWS_REGION          = var.region
+    FRONTEND_ORIGIN     = var.frontend_origin
+  }
+
+  secrets = {
+    RAILS_MASTER_KEY  = aws_secretsmanager_secret.rails_master_key.arn
+    DATABASE_PASSWORD = "${module.rds_aurora.master_secret_arn}:password::"
   }
 
   tags = local.common_tags

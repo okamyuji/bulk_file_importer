@@ -26,13 +26,13 @@ module "ecr" {
 module "network" {
   source = "../../modules/network"
 
-  project            = var.project
-  environment        = var.environment
-  vpc_cidr           = "10.0.0.0/16"
-  availability_zones = local.availability_zones
+  project              = var.project
+  environment          = var.environment
+  vpc_cidr             = "10.0.0.0/16"
+  availability_zones   = local.availability_zones
   public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
   private_subnet_cidrs = ["10.0.11.0/24", "10.0.12.0/24"]
-  single_nat_gateway = true
+  single_nat_gateway   = true
 
   tags = local.common_tags
 }
@@ -64,8 +64,10 @@ resource "aws_secretsmanager_secret" "rails_master_key" {
 }
 
 resource "aws_secretsmanager_secret_version" "rails_master_key" {
-  secret_id     = aws_secretsmanager_secret.rails_master_key.id
-  secret_string = var.rails_master_key
+  secret_id        = aws_secretsmanager_secret.rails_master_key.id
+  secret_string_wo = var.rails_master_key
+  # write-only の値は state に無く差分を取れない。鍵を替えたらこの数を上げないと新しい値が送られない。
+  secret_string_wo_version = 1
 }
 
 ################################################################################
@@ -100,11 +102,11 @@ module "rds_aurora" {
 module "s3_csv_bucket" {
   source = "../../modules/s3_csv_bucket"
 
-  project                    = var.project
-  environment                = var.environment
+  project                     = var.project
+  environment                 = var.environment
   csv_imports_expiration_days = 7
   originals_expiration_days   = 90
-  force_destroy              = true
+  force_destroy               = true
 
   tags = local.common_tags
 }
@@ -116,10 +118,11 @@ module "s3_csv_bucket" {
 module "iam" {
   source = "../../modules/iam"
 
-  project        = var.project
-  environment    = var.environment
-  csv_bucket_arn = module.s3_csv_bucket.bucket_arn
-  secrets_arns   = [
+  project            = var.project
+  environment        = var.environment
+  csv_bucket_arn     = module.s3_csv_bucket.bucket_arn
+  ecr_repository_arn = module.ecr.repository_arn
+  secrets_arns = [
     aws_secretsmanager_secret.rails_master_key.arn,
     module.rds_aurora.master_secret_arn,
   ]
@@ -173,6 +176,7 @@ module "ecs_service_web" {
     DATABASE_USERNAME   = "admin"
     S3_BUCKET           = module.s3_csv_bucket.bucket_name
     AWS_REGION          = var.region
+    FRONTEND_ORIGIN     = var.frontend_origin
   }
 
   secrets = {
@@ -215,6 +219,7 @@ module "ecs_service_worker" {
     DATABASE_USERNAME   = "admin"
     S3_BUCKET           = module.s3_csv_bucket.bucket_name
     AWS_REGION          = var.region
+    FRONTEND_ORIGIN     = var.frontend_origin
   }
 
   secrets = {

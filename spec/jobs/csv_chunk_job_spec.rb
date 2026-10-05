@@ -48,6 +48,31 @@ RSpec.describe CsvChunkJob do
     expect { described_class.perform_now(chunk.id) }.not_to change(SalesRecord, :count)
   end
 
+  it "marks the chunk failed, increments retry_count and logs csv_chunk.failed when the chunk body is missing" do
+    missing =
+      file_import.file_import_chunks.create!(
+        chunk_index: 1,
+        start_row: 5,
+        end_row: 5,
+        status: "pending",
+        s3_key: "file_imports/ci/missing.csv",
+      )
+    allow(AuditLogger).to receive(:event)
+
+    expect { described_class.new.perform(missing.id) }.to raise_error(StandardError, /missing/)
+
+    missing.reload
+    expect(missing.status).to eq("failed")
+    expect(missing.error_details).to eq([{ "fatal" => "RuntimeError" }])
+    expect(missing.retry_count).to eq(1)
+    expect(AuditLogger).to have_received(:event).with(
+      "csv_chunk.failed",
+      chunk_id: missing.id,
+      error_class: a_kind_of(String),
+      error_message: a_string_matching(/missing/),
+    )
+  end
+
   it "skips already-completed chunks (at-least-once delivery safety)" do
     chunk.update!(status: "completed", processed_rows: 999)
     expect { described_class.perform_now(chunk.id) }.not_to change(SalesRecord, :count)
