@@ -138,7 +138,7 @@ module "ecs_service_web" {
     DATABASE_HOST       = module.rds_aurora.cluster_endpoint
     DATABASE_PORT       = tostring(module.rds_aurora.port)
     DATABASE_NAME       = module.rds_aurora.database_name
-    S3_BUCKET_NAME      = module.s3_csv_bucket.bucket_name
+    S3_BUCKET           = module.s3_csv_bucket.bucket_name
   }
 
   tags = local.common_tags
@@ -173,7 +173,7 @@ module "ecs_service_worker" {
     DATABASE_HOST       = module.rds_aurora.cluster_endpoint
     DATABASE_PORT       = tostring(module.rds_aurora.port)
     DATABASE_NAME       = module.rds_aurora.database_name
-    S3_BUCKET_NAME      = module.s3_csv_bucket.bucket_name
+    S3_BUCKET           = module.s3_csv_bucket.bucket_name
   }
 
   tags = local.common_tags
