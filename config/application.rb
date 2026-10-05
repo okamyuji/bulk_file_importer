@@ -42,5 +42,9 @@ module BulkFileImporter
     # 画像 variant を使わず、distroless ランタイムに libvips も無い。既定の :vips だと
     # 起動時に ImageProcessing::Vips を読み込み、ruby-vips 不在の LoadError で落ちる。
     config.active_storage.variant_processor = :disabled
+
+    # Active Storage の blob ルートは認証なしで公開される。アプリは blob の URL を
+    # 返さず、アップロードも API 経由なので、ルートごと描画しない。
+    config.active_storage.draw_routes = false
   end
 end
