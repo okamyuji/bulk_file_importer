@@ -40,6 +40,22 @@ module "observability" {
 }
 
 ################################################################################
+# SecretsManager
+################################################################################
+
+resource "aws_secretsmanager_secret" "rails_master_key" {
+  name        = "${var.project}-${var.environment}-rails-master-key"
+  description = "Rails master key for credentials decryption"
+
+  tags = local.common_tags
+}
+
+resource "aws_secretsmanager_secret_version" "rails_master_key" {
+  secret_id     = aws_secretsmanager_secret.rails_master_key.id
+  secret_string = var.rails_master_key
+}
+
+################################################################################
 # RDS Aurora
 ################################################################################
 
@@ -90,6 +106,10 @@ module "iam" {
   project        = var.project
   environment    = var.environment
   csv_bucket_arn = module.s3_csv_bucket.bucket_arn
+  secrets_arns = [
+    aws_secretsmanager_secret.rails_master_key.arn,
+    module.rds_aurora.master_secret_arn,
+  ]
 
   tags = local.common_tags
 }
@@ -138,7 +158,14 @@ module "ecs_service_web" {
     DATABASE_HOST       = module.rds_aurora.cluster_endpoint
     DATABASE_PORT       = tostring(module.rds_aurora.port)
     DATABASE_NAME       = module.rds_aurora.database_name
+    DATABASE_USERNAME   = var.db_username
     S3_BUCKET           = module.s3_csv_bucket.bucket_name
+    AWS_REGION          = var.region
+  }
+
+  secrets = {
+    RAILS_MASTER_KEY  = aws_secretsmanager_secret.rails_master_key.arn
+    DATABASE_PASSWORD = "${module.rds_aurora.master_secret_arn}:password::"
   }
 
   tags = local.common_tags
@@ -173,7 +200,14 @@ module "ecs_service_worker" {
     DATABASE_HOST       = module.rds_aurora.cluster_endpoint
     DATABASE_PORT       = tostring(module.rds_aurora.port)
     DATABASE_NAME       = module.rds_aurora.database_name
+    DATABASE_USERNAME   = var.db_username
     S3_BUCKET           = module.s3_csv_bucket.bucket_name
+    AWS_REGION          = var.region
+  }
+
+  secrets = {
+    RAILS_MASTER_KEY  = aws_secretsmanager_secret.rails_master_key.arn
+    DATABASE_PASSWORD = "${module.rds_aurora.master_secret_arn}:password::"
   }
 
   tags = local.common_tags
