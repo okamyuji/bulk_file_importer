@@ -36,7 +36,7 @@ CSVは行単位でチャンク分割してDBへupsertし、バイナリは8MB単
 - Docker Desktop。MySQL 8.0のコンテナが`mysql8-mysql-1`という名前で起動しており、`mysql8_default`ネットワークに接続されている必要があります
 - Node.js 22以降とpnpm 10以降
 - lefthook（`brew install lefthook`でインストールできます）
-- Terraform 1.5以降（インフラの検証に使用します）
+- Terraform 1.11以降（インフラの検証に使用します）
 
 ## セットアップ手順
 
@@ -253,6 +253,23 @@ make tf.init      # Terraformの初期化を実行します
 make tf.validate  # 設定ファイルの構文検証を実行します
 make tf.plan      # インフラの変更計画を確認します
 ```
+
+本番環境（prod）のstateはS3に暗号化して置き、S3のロックファイルで排他制御します。バケット名とリージョンはリポジトリに置かず、初期化のときに渡します。バケットはバージョニングを有効にして事前に作成してください。
+
+```bash
+terraform -chdir=infra/terraform/envs/prod init \
+  -backend-config="bucket=<stateを置くS3バケット名>" \
+  -backend-config="region=<バケットのリージョン>"
+```
+
+`rails_master_key`はstateにもplanファイルにも保存されません。planとapplyのたびに環境変数で渡してください。
+
+```bash
+export TF_VAR_rails_master_key="$(cat config/master.key)"
+terraform -chdir=infra/terraform/envs/prod plan
+```
+
+鍵を替えたときは、`main.tf`の`secret_string_wo_version`の数を1つ上げてからapplyします。
 
 8つのモジュール（network、rds_aurora、s3_csv_bucket、iam、ecs_cluster、ecs_service_web、ecs_service_worker、observability）で構成されており、すべてのモジュールはvariables.tfで入力を受け取り、outputs.tfで出力を公開しています。
 

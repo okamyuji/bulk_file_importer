@@ -1,12 +1,8 @@
-# Uncomment the block below to use S3 backend for remote state.
-# Ensure the S3 bucket and DynamoDB table exist before enabling.
-#
-# terraform {
-#   backend "s3" {
-#     bucket         = "bulk-file-importer-terraform-state"
-#     key            = "prod/terraform.tfstate"
-#     region         = "ap-northeast-1"
-#     dynamodb_table = "bulk-file-importer-terraform-locks"
-#     encrypt        = true
-#   }
-# }
+# bucket と region は環境ごとに異なるため、terraform init -backend-config で渡す（README 参照）。
+terraform {
+  backend "s3" {
+    key          = "prod/terraform.tfstate"
+    encrypt      = true
+    use_lockfile = true
+  }
+}

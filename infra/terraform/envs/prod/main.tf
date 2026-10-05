@@ -51,8 +51,10 @@ resource "aws_secretsmanager_secret" "rails_master_key" {
 }
 
 resource "aws_secretsmanager_secret_version" "rails_master_key" {
-  secret_id     = aws_secretsmanager_secret.rails_master_key.id
-  secret_string = var.rails_master_key
+  secret_id        = aws_secretsmanager_secret.rails_master_key.id
+  secret_string_wo = var.rails_master_key
+  # write-only の値は state に無く差分を取れない。鍵を替えたらこの数を上げないと新しい値が送られない。
+  secret_string_wo_version = 1
 }
 
 ################################################################################

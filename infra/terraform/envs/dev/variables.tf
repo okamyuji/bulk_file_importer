@@ -30,6 +30,7 @@ variable "rails_master_key" {
   description = "Rails master key (from config/master.key)"
   type        = string
   sensitive   = true
+  ephemeral   = true
 }
 
 variable "frontend_origin" {
