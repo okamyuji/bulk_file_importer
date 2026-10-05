@@ -32,9 +32,13 @@ variable "ecr_image_uri" {
 }
 
 variable "certificate_arn" {
-  description = "ARN of the ACM certificate for HTTPS"
+  description = "ARN of the ACM certificate for HTTPS (required in prod; an empty value would serve plain HTTP)"
   type        = string
-  default     = ""
+
+  validation {
+    condition     = can(regex("^arn:aws[a-z-]*:acm:[a-z0-9-]+:[0-9]{12}:certificate/.+$", var.certificate_arn))
+    error_message = "certificate_arn must be an ACM certificate ARN."
+  }
 }
 
 variable "rails_master_key" {
