@@ -63,7 +63,7 @@ RSpec.describe CsvChunkJob do
 
     missing.reload
     expect(missing.status).to eq("failed")
-    expect(missing.error_details).to match([{ "fatal" => a_string_matching(/missing/) }])
+    expect(missing.error_details).to eq([{ "fatal" => "RuntimeError" }])
     expect(missing.retry_count).to eq(1)
     expect(AuditLogger).to have_received(:event).with(
       "csv_chunk.failed",

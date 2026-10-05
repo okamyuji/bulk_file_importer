@@ -6,10 +6,10 @@ module ChunkFailureRecording
 
   # chunk は lock.find 前に失敗すると nil になるため、更新は chunk_id で行う。
   def record_chunk_failure(chunk_id, chunk, error, event_name)
-    # Rails' JSON column attribute handles serialization, so pass a plain array.
+    # error_details は API で利用者に返る。例外文はバケット名・キー・SQL 断片を含み得るため監査ログにだけ残す。
     FileImportChunk.where(id: chunk_id).update_all(
       status: "failed",
-      error_details: [{ fatal: error.message }],
+      error_details: [{ fatal: error.class.name }],
       retry_count: (chunk&.retry_count.to_i) + 1,
     )
     AuditLogger.event(

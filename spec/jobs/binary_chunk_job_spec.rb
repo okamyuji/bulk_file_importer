@@ -51,7 +51,7 @@ RSpec.describe BinaryChunkJob do
     expect { described_class.new.perform(chunk.id) }.to raise_error(StandardError, /missing/)
 
     chunk.reload
-    expect(chunk.error_details).to match([{ "fatal" => a_string_matching(/missing/) }])
+    expect(chunk.error_details).to eq([{ "fatal" => "RuntimeError" }])
     expect(chunk.retry_count).to eq(1)
     expect(AuditLogger).to have_received(:event).with(
       "binary_chunk.failed",
