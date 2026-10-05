@@ -58,7 +58,7 @@ variable "frontend_origin" {
   type        = string
 
   validation {
-    condition     = trimspace(var.frontend_origin) != ""
-    error_message = "frontend_origin must not be empty."
+    condition     = alltrue([for origin in split(",", var.frontend_origin) : can(regex("^https://[a-z0-9.-]+(:[0-9]+)?$", origin))])
+    error_message = "frontend_origin must be comma-separated https origins without spaces or paths (e.g. https://app.example.com,https://admin.example.com:8443)."
   }
 }
