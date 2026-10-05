@@ -38,5 +38,9 @@ module BulkFileImporter
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    # 画像 variant を使わず、distroless ランタイムに libvips も無い。既定の :vips だと
+    # 起動時に ImageProcessing::Vips を読み込み、ruby-vips 不在の LoadError で落ちる。
+    config.active_storage.variant_processor = :disabled
   end
 end
