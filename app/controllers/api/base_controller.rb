@@ -4,23 +4,13 @@
 module Api
   class BaseController < ActionController::API
     include Pundit::Authorization
+    include AuthorizationErrorHandling
     include ActionController::Cookies
 
     before_action :authenticate_user!
     before_action :set_audit_context
 
     respond_to :json
-
-    rescue_from Pundit::NotAuthorizedError do |exception|
-      AuditLogger.event(
-        "authz.forbidden",
-        policy: exception.policy.class.name,
-        query: exception.query,
-        target_type: exception.record.class.name,
-        target_id: exception.record.respond_to?(:id) ? exception.record.id : nil,
-      )
-      render json: { error: "forbidden" }, status: :forbidden
-    end
 
     rescue_from ActiveRecord::RecordNotFound do
       render json: { error: "not_found" }, status: :not_found
