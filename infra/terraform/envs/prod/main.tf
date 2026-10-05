@@ -14,13 +14,13 @@ locals {
 module "network" {
   source = "../../modules/network"
 
-  project            = var.project
-  environment        = var.environment
-  vpc_cidr           = "10.1.0.0/16"
-  availability_zones = local.availability_zones
+  project              = var.project
+  environment          = var.environment
+  vpc_cidr             = "10.1.0.0/16"
+  availability_zones   = local.availability_zones
   public_subnet_cidrs  = ["10.1.1.0/24", "10.1.2.0/24"]
   private_subnet_cidrs = ["10.1.11.0/24", "10.1.12.0/24"]
-  single_nat_gateway = false
+  single_nat_gateway   = false
 
   tags = local.common_tags
 }
@@ -87,11 +87,11 @@ module "rds_aurora" {
 module "s3_csv_bucket" {
   source = "../../modules/s3_csv_bucket"
 
-  project                    = var.project
-  environment                = var.environment
+  project                     = var.project
+  environment                 = var.environment
   csv_imports_expiration_days = 7
   originals_expiration_days   = 90
-  force_destroy              = false
+  force_destroy               = false
 
   tags = local.common_tags
 }
