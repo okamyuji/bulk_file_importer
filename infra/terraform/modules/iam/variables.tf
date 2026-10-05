@@ -14,7 +14,7 @@ variable "csv_bucket_arn" {
 }
 
 variable "secrets_arns" {
-  description = "List of Secrets Manager secret ARNs the task role can access"
+  description = "List of Secrets Manager secret ARNs the execution role injects into containers"
   type        = list(string)
   default     = []
 }

@@ -55,27 +55,6 @@ resource "aws_iam_role_policy" "ecs_task_s3" {
   })
 }
 
-resource "aws_iam_role_policy" "ecs_task_secrets" {
-  name = "${var.project}-${var.environment}-ecs-task-secrets"
-  role = aws_iam_role.ecs_task.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "SecretsManagerAccess"
-        Effect = "Allow"
-        Action = [
-          "secretsmanager:GetSecretValue"
-        ]
-        Resource = length(var.secrets_arns) > 0 ? var.secrets_arns : [
-          "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:${var.project}/${var.environment}/*"
-        ]
-      }
-    ]
-  })
-}
-
 ################################################################################
 # ECS Execution Role (infrastructure permissions)
 ################################################################################
