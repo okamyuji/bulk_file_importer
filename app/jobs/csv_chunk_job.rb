@@ -4,6 +4,8 @@
 require "csv"
 
 class CsvChunkJob < ApplicationJob
+  include ChunkFailureRecording
+
   queue_as :csv_chunk
 
   BATCH_SIZE = 100
@@ -90,18 +92,7 @@ class CsvChunkJob < ApplicationJob
       file_import = FileImport.find_by(id: file_import_id)
       FileImportFinalizerJob.perform_later(file_import_id) if file_import&.finish_one_chunk!
     end
-    # Rails' JSON column attribute handles serialization, so pass a plain array.
-    FileImportChunk.where(id: chunk_id).update_all(
-      status: "failed",
-      error_details: [{ fatal: e.message }],
-      retry_count: (chunk&.retry_count.to_i) + 1,
-    )
-    AuditLogger.event(
-      "csv_chunk.failed",
-      chunk_id: chunk_id,
-      error_class: e.class.name,
-      error_message: e.message[0, 200],
-    )
+    record_chunk_failure(chunk_id, chunk, e, "csv_chunk.failed")
     raise
   end
 

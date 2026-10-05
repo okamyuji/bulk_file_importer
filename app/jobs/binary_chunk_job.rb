@@ -4,6 +4,8 @@
 require "digest"
 
 class BinaryChunkJob < ApplicationJob
+  include ChunkFailureRecording
+
   queue_as :csv_chunk
 
   retry_on StandardError, wait: :polynomially_longer, attempts: 3, jitter: 0.15
@@ -39,17 +41,7 @@ class BinaryChunkJob < ApplicationJob
   rescue StandardError => e
     file_import_id = chunk&.file_import_id
 
-    FileImportChunk.where(id: chunk_id).update_all(
-      status: "failed",
-      error_details: [{ fatal: e.message }],
-      retry_count: (chunk&.retry_count.to_i) + 1,
-    )
-    AuditLogger.event(
-      "binary_chunk.failed",
-      chunk_id: chunk_id,
-      error_class: e.class.name,
-      error_message: e.message[0, 200],
-    )
+    record_chunk_failure(chunk_id, chunk, e, "binary_chunk.failed")
     # 再試行が残っている間はFinalizerを起動しない。最終リトライで初めてチャンクが
     # 「永続的失敗」とみなせるため、ここでだけ直接enqueueする（finish_one_chunk!を
     # rescueから呼ぶと、retry中の一時的失敗まで残数を減らしてしまうため避ける）。
