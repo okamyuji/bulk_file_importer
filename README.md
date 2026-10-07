@@ -33,7 +33,7 @@ CSVは行単位でチャンク分割してDBへupsertし、バイナリは8MB単
 
 - macOS（Apple Silicon）またはLinux
 - miseによるRuby 3.4.11の管理（ https://mise.jdx.dev/ ）
-- Docker Desktop MySQL 8.0のコンテナを`mysql8-mysql-1`という名前で起動し、`mysql8_default`ネットワークに接続しておきます
+- Docker Desktop（MySQL 8.0のコンテナを`mysql8-mysql-1`という名前で起動し、`mysql8_default`ネットワークに接続しておきます）
 - Node.js 22以降とpnpm 10以降
 - lefthook（`brew install lefthook`でインストールできます）
 - Terraform 1.11以降（インフラの検証に使用します）
