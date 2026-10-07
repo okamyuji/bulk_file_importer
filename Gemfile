@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-# 3.4.8 をローカルでは固定しつつ、DHI distroless ランタイムは 3.4 系の最新パッチに
+# 3.4.11 をローカルでは固定しつつ、DHI distroless ランタイムは 3.4 系の最新パッチに
 # 揃わないことがある（記事より：builder と runtime で 3.4.9 / 3.4.5 のように
 # パッチ違い）ため、Gemfile 側は `~>` で許容幅を取って RUBY_VERSION 厳密一致で
 # 落ちないようにする。
