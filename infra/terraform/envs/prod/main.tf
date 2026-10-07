@@ -9,6 +9,28 @@ locals {
     Project     = var.project
     Environment = var.environment
   }
+
+  rails_environment = {
+    RAILS_ENV           = "production"
+    RAILS_LOG_TO_STDOUT = "1"
+    DATABASE_HOST       = module.rds_aurora.cluster_endpoint
+    DATABASE_PORT       = tostring(module.rds_aurora.port)
+    DATABASE_NAME       = module.rds_aurora.database_name
+    S3_BUCKET           = module.s3_csv_bucket.bucket_name
+    AWS_REGION          = var.region
+    FRONTEND_ORIGIN     = var.frontend_origin
+  }
+
+  # web と worker はローテーションしないアプリ用の secret を使う。マスターの secret は
+  # 7日ごとに替わり、起動済みのタスクには新しい値が届かないため、migrate タスクだけが使う。
+  app_db_environment = merge(local.rails_environment, {
+    DATABASE_USERNAME = var.app_db_username
+  })
+
+  app_db_secrets = {
+    RAILS_MASTER_KEY  = aws_secretsmanager_secret.rails_master_key.arn
+    DATABASE_PASSWORD = aws_secretsmanager_secret.app_db_password.arn
+  }
 }
 
 ################################################################################
@@ -58,6 +80,26 @@ resource "aws_secretsmanager_secret_version" "rails_master_key" {
   secret_id        = aws_secretsmanager_secret.rails_master_key.id
   secret_string_wo = var.rails_master_key
   # write-only の値は state に無く差分を取れない。鍵を替えたらこの数を上げないと新しい値が送られない。
+  secret_string_wo_version = 1
+}
+
+ephemeral "random_password" "app_db_password" {
+  length = 32
+  # database.yml は値を引用符なしで YAML に埋め込むため、記号を含めない。
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "app_db_password" {
+  name        = "${var.project}-${var.environment}-app-db-password"
+  description = "Password of the DML-only MySQL user that the web and worker services connect as"
+
+  tags = local.common_tags
+}
+
+resource "aws_secretsmanager_secret_version" "app_db_password" {
+  secret_id        = aws_secretsmanager_secret.app_db_password.id
+  secret_string_wo = ephemeral.random_password.app_db_password.result
+  # 乱数は plan のたびに変わるが、送られるのはこの数を上げたときだけ。替える手順は README 参照。
   secret_string_wo_version = 1
 }
 
@@ -115,6 +157,7 @@ module "iam" {
   ecr_repository_arn = local.ecr_repository_arn
   secrets_arns = [
     aws_secretsmanager_secret.rails_master_key.arn,
+    aws_secretsmanager_secret.app_db_password.arn,
     module.rds_aurora.master_secret_arn,
   ]
 
@@ -159,22 +202,8 @@ module "ecs_service_web" {
   log_group_name        = module.observability.log_group_web_name
   certificate_arn       = var.certificate_arn
 
-  environment_variables = {
-    RAILS_ENV           = "production"
-    RAILS_LOG_TO_STDOUT = "1"
-    DATABASE_HOST       = module.rds_aurora.cluster_endpoint
-    DATABASE_PORT       = tostring(module.rds_aurora.port)
-    DATABASE_NAME       = module.rds_aurora.database_name
-    DATABASE_USERNAME   = var.db_username
-    S3_BUCKET           = module.s3_csv_bucket.bucket_name
-    AWS_REGION          = var.region
-    FRONTEND_ORIGIN     = var.frontend_origin
-  }
-
-  secrets = {
-    RAILS_MASTER_KEY  = aws_secretsmanager_secret.rails_master_key.arn
-    DATABASE_PASSWORD = "${module.rds_aurora.master_secret_arn}:password::"
-  }
+  environment_variables = local.app_db_environment
+  secrets               = local.app_db_secrets
 
   tags = local.common_tags
 }
@@ -202,22 +231,76 @@ module "ecs_service_worker" {
   cpu_target_value   = 70
   log_group_name     = module.observability.log_group_worker_name
 
-  environment_variables = {
-    RAILS_ENV           = "production"
-    RAILS_LOG_TO_STDOUT = "1"
-    DATABASE_HOST       = module.rds_aurora.cluster_endpoint
-    DATABASE_PORT       = tostring(module.rds_aurora.port)
-    DATABASE_NAME       = module.rds_aurora.database_name
-    DATABASE_USERNAME   = var.db_username
-    S3_BUCKET           = module.s3_csv_bucket.bucket_name
-    AWS_REGION          = var.region
-    FRONTEND_ORIGIN     = var.frontend_origin
-  }
-
-  secrets = {
-    RAILS_MASTER_KEY  = aws_secretsmanager_secret.rails_master_key.arn
-    DATABASE_PASSWORD = "${module.rds_aurora.master_secret_arn}:password::"
-  }
+  environment_variables = local.app_db_environment
+  secrets               = local.app_db_secrets
 
   tags = local.common_tags
+}
+
+################################################################################
+# ECS Task Definition - Migrate (run once per deploy with aws ecs run-task)
+################################################################################
+
+resource "aws_ecs_task_definition" "migrate" {
+  family                   = "${var.project}-${var.environment}-migrate"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = 512
+  memory                   = 1024
+  task_role_arn            = module.iam.task_role_arn
+  execution_role_arn       = module.iam.execution_role_arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "${var.project}-${var.environment}-migrate"
+      image     = var.ecr_image_uri
+      essential = true
+      # runtime は shell の無い distroless のため、Dockerfile の CMD と同じく ruby から直接起動する。
+      command = ["ruby", "bin/rails", "db:prepare", "db:grant_app_user"]
+
+      environment = [
+        for k, v in merge(local.rails_environment, {
+          DATABASE_USERNAME     = var.db_username
+          DATABASE_APP_USERNAME = var.app_db_username
+        }) : { name = k, value = v }
+      ]
+
+      secrets = [
+        { name = "RAILS_MASTER_KEY", valueFrom = aws_secretsmanager_secret.rails_master_key.arn },
+        { name = "DATABASE_PASSWORD", valueFrom = "${module.rds_aurora.master_secret_arn}:password::" },
+        { name = "DATABASE_APP_PASSWORD", valueFrom = aws_secretsmanager_secret.app_db_password.arn },
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = module.observability.log_group_worker_name
+          "awslogs-region"        = var.region
+          "awslogs-stream-prefix" = "migrate"
+        }
+      }
+    }
+  ])
+
+  tags = local.common_tags
+}
+
+################################################################################
+# Outputs
+################################################################################
+
+output "migrate_task_definition_arn" {
+  value = aws_ecs_task_definition.migrate.arn
+}
+
+output "cluster_name" {
+  value = module.ecs_cluster.cluster_name
+}
+
+output "private_subnet_ids" {
+  value = module.network.private_subnet_ids
+}
+
+output "migrate_security_group_id" {
+  value = module.network.sg_rails_worker_id
 }

@@ -26,6 +26,18 @@ variable "db_username" {
   default     = "admin"
 }
 
+variable "app_db_username" {
+  description = "MySQL user with SELECT, INSERT, UPDATE and DELETE only, which the web and worker services connect as"
+  type        = string
+  default     = "app"
+
+  validation {
+    # MySQL のユーザー名は32文字まで。
+    condition     = can(regex("^[a-z][a-z0-9_]{0,31}$", var.app_db_username)) && var.app_db_username != var.db_username
+    error_message = "app_db_username must be 1-32 lowercase letters, digits or underscores starting with a letter, and must differ from db_username."
+  }
+}
+
 variable "ecr_image_uri" {
   description = "Full ECR image URI including tag for the Rails application"
   type        = string

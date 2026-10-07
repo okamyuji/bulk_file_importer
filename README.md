@@ -36,7 +36,7 @@ CSVは行単位でチャンク分割してDBへupsertし、バイナリは8MB単
 - Docker Desktop（MySQL 8.0のコンテナを`mysql8-mysql-1`という名前で起動し、`mysql8_default`ネットワークに接続しておきます）
 - Node.js 22以降とpnpm 10以降
 - lefthook（`brew install lefthook`でインストールできます）
-- Terraform 1.11以降（インフラの検証に使用します）
+- Terraform 1.11以降、2.0未満（インフラの検証に使用します）
 
 ## セットアップ手順
 
@@ -259,7 +259,7 @@ make tf.validate  # 設定ファイルの構文検証を実行します
 make tf.plan      # インフラの変更計画を確認します
 ```
 
-本番環境（prod）のstateはS3に暗号化して置き、S3のロックファイルで排他制御します。バケット名とリージョンはリポジトリに置かず、初期化のときに渡します。バケットはバージョニングを有効にして事前に作成してください。
+本番環境（prod）のstateはS3に暗号化して置き、S3のロックファイルで排他制御します。バケット名とリージョンはリポジトリに置かず、初期化のときに渡します。バケットは後述の「stateを置くS3バケット」の設定で事前に作成してください。
 
 ```bash
 terraform -chdir=infra/terraform/envs/prod init \
@@ -276,9 +276,120 @@ export TF_VAR_rails_master_key="$(cat config/credentials/production.key)"
 terraform -chdir=infra/terraform/envs/prod plan
 ```
 
-鍵を替えたときは、`main.tf`の`secret_string_wo_version`の数を1つ上げてからapplyします。
+鍵を替えたときは、`main.tf`の`aws_secretsmanager_secret_version.rails_master_key`にある`secret_string_wo_version`の数を1つ上げてからapplyしてください。
 
 8つのモジュール（network、rds_aurora、s3_csv_bucket、iam、ecs_cluster、ecs_service_web、ecs_service_worker、observability）で構成されており、すべてのモジュールはvariables.tfで入力を受け取り、outputs.tfで出力を公開しています。
+
+providerの版とハッシュは、各環境の`.terraform.lock.hcl`に記録されています。providerを上げるときは、次のコマンドでlockファイルを作り直してcommitしてください。
+
+```bash
+terraform -chdir=infra/terraform/envs/prod init -backend=false -upgrade
+terraform -chdir=infra/terraform/envs/prod providers lock \
+  -platform=linux_amd64 -platform=linux_arm64 -platform=darwin_arm64
+```
+
+### 本番のDBユーザー
+
+本番のwebとworkerは、アプリ用のMySQLユーザー（`app_db_username`、既定は`app`）で接続します。このユーザーに許すのは、4つのDB（primary、cache、queue、cable）へのSELECT、INSERT、UPDATE、DELETEだけです。パスワードはTerraformが乱数で作り、Secrets Managerの`<project>-prod-app-db-password`に書き込みます。値はstateにもplanファイルにも保存されません。
+
+テーブルの作成と変更、アプリ用ユーザーの作成と権限の付与は、migrateタスク（`<project>-prod-migrate`）の役目です。migrateタスクはAuroraのマスターユーザーで接続し、`db:prepare`と`db:grant_app_user`を順に実行します。`db:grant_app_user`は何度実行しても同じ結果になるので、MySQL側のパスワードはいつもsecretの値と揃います。
+
+開発環境（dev）は、これまでどおりマスターユーザーで接続する構成のままです。
+
+### 本番のデプロイ手順
+
+webとworkerより先にmigrateタスクを実行し、アプリ用のユーザーと新しいスキーマを用意します。初めてアプリ用ユーザーに切り替えるときも、イメージを更新するときも、同じ手順で行います。
+
+```bash
+cd infra/terraform/envs/prod
+export TF_VAR_rails_master_key="$(cat ../../../../config/credentials/production.key)"
+
+# 1. secret、IAM、クラスター、migrateタスク定義だけを先に反映します
+terraform apply \
+  -target=aws_secretsmanager_secret_version.app_db_password \
+  -target=module.iam \
+  -target=module.ecs_cluster \
+  -target=aws_ecs_task_definition.migrate
+
+# 2. migrateタスクを実行し、終了コードが0であることを確かめます
+CLUSTER="$(terraform output -raw cluster_name)"
+TASK_ARN="$(aws ecs run-task \
+  --cluster "$CLUSTER" \
+  --task-definition "$(terraform output -raw migrate_task_definition_arn)" \
+  --launch-type FARGATE \
+  --network-configuration "awsvpcConfiguration={subnets=[$(terraform output -json private_subnet_ids | jq -r 'join(",")')],securityGroups=[$(terraform output -raw migrate_security_group_id)],assignPublicIp=DISABLED}" \
+  --query 'tasks[0].taskArn' --output text)"
+aws ecs wait tasks-stopped --cluster "$CLUSTER" --tasks "$TASK_ARN"
+aws ecs describe-tasks --cluster "$CLUSTER" --tasks "$TASK_ARN" --query 'tasks[0].containers[0].exitCode'
+
+# 3. 残りを反映し、webとworkerを新しいタスク定義で起動します
+terraform apply
+```
+
+migrateタスクのログは、workerのロググループにある`migrate/`で始まるストリームに出ます。
+
+### DBパスワードのローテーション
+
+Auroraは、マスターユーザーのsecretを既定で7日ごとにローテーションします。ECSはsecretをコンテナの起動時にだけ読むため、起動済みのタスクには新しい値が届きません。webとworkerはマスターのsecretを使わないので、このローテーションの影響を受けません。migrateタスクは実行のたびに起動するため、常に最新の値を読みます。
+
+アプリ用のsecretは自動でローテーションしません。替えるときは、次の順番で行います。
+
+1. `main.tf`の`aws_secretsmanager_secret_version.app_db_password`にある`secret_string_wo_version`の数を1つ上げます。
+2. 「本番のデプロイ手順」の1と2を実行します。secretが新しい乱数に替わり、migrateタスクがMySQL側のパスワードを合わせます。
+3. webとworkerを再デプロイし、新しいパスワードを読ませます。
+
+```bash
+aws ecs update-service --cluster "$CLUSTER" --service <project>-prod-web --force-new-deployment
+aws ecs update-service --cluster "$CLUSTER" --service <project>-prod-worker --force-new-deployment
+```
+
+2を終えてから3が終わるまで、起動済みのタスクが新しく張る接続は認証に失敗します。利用の少ない時間に行ってください。
+
+### stateを置くS3バケット
+
+このリポジトリは、stateを置くバケットを作りません。次の設定を済ませたバケットを事前に用意してください。
+
+- バージョニング 誤ってstateを壊したときに前の版へ戻せるよう、有効にします。
+- パブリックアクセスのブロック 4つの設定をすべて有効にします。
+- 既定の暗号化 SSE-S3かSSE-KMSを設定します。
+- TLS以外の拒否 バケットポリシーで、`aws:SecureTransport`が`false`の要求を拒否します。
+- 読める主体の限定 バケットポリシーで、Terraformを実行するIAMロール以外のオブジェクトの読み書きを拒否します。
+
+バケットポリシーの例です。`<バケット名>`、`<アカウントID>`、`<ロール名>`を置き換えてください。バケットポリシー自体の変更は拒否しないので、ポリシーを誤っても管理者が直せます。
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyInsecureTransport",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": ["arn:aws:s3:::<バケット名>", "arn:aws:s3:::<バケット名>/*"],
+      "Condition": { "Bool": { "aws:SecureTransport": "false" } }
+    },
+    {
+      "Sid": "DenyObjectAccessExceptTerraform",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+      "Resource": "arn:aws:s3:::<バケット名>/*",
+      "Condition": { "ArnNotEquals": { "aws:PrincipalArn": "arn:aws:iam::<アカウントID>:role/<ロール名>" } }
+    }
+  ]
+}
+```
+
+次のコマンドで、設定を確かめられます。
+
+```bash
+BUCKET=<stateを置くS3バケット名>
+aws s3api get-bucket-versioning --bucket "$BUCKET"      # "Status": "Enabled"
+aws s3api get-public-access-block --bucket "$BUCKET"    # 4つの値がすべてtrue
+aws s3api get-bucket-encryption --bucket "$BUCKET"      # SSEAlgorithmがAES256かaws:kms
+aws s3api get-bucket-policy --bucket "$BUCKET" --query Policy --output text | jq .
+```
 
 ## ライセンス
 

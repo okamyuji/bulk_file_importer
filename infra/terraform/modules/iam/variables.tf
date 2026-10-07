@@ -28,8 +28,8 @@ variable "secrets_arns" {
   type        = list(string)
 
   validation {
-    condition     = length(var.secrets_arns) > 0
-    error_message = "secrets_arns must list at least one secret ARN."
+    condition     = length(var.secrets_arns) > 0 && alltrue([for arn in var.secrets_arns : can(regex("^arn:aws[a-z-]*:secretsmanager:[a-z0-9-]+:[0-9]{12}:secret:[A-Za-z0-9/_+=.@!-]+$", arn))])
+    error_message = "secrets_arns must list at least one Secrets Manager secret ARN; wildcards and other services are rejected."
   }
 }
 
