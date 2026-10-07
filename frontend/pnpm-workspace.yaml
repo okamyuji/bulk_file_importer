@@ -12,9 +12,3 @@ overrides:
 
 # 公開から7日未満の版を取得しない。pnpm 11 は .npmrc の minimum-release-age を読まないため、ここに書く。
 minimumReleaseAge: 10080 # 60 * 24 * 7 = 7日（分）
-
-# 7日の minimumReleaseAge の例外。source-map-js 1.2.2 は 2026-09-30 公開の GHSA-68fv-2mgg-jv7q
-# 修正版で、この版だけを除外する。pnpm 11.20.0 は frozen install でも lockfile の各エントリを
-# このポリシーで検証し、例外がないと失敗する（11.0.5 は検証しない）。2026-10-07T14:09Z 以降は削除してよい。
-minimumReleaseAgeExclude:
-  - source-map-js@1.2.2
