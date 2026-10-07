@@ -12,13 +12,13 @@ jobs:
   security-scan:
     permissions:
       contents: read
-    uses: okamyuji/reusable-workflows/.github/workflows/security-scan.yml@v1
+    uses: okamyuji/reusable-workflows/.github/workflows/security-scan.yml@test/ubuntu-26.04
 
   rails-ci:
     permissions:
       contents: read
       pull-requests: write
-    uses: okamyuji/reusable-workflows/.github/workflows/rails-ci.yml@v1
+    uses: okamyuji/reusable-workflows/.github/workflows/rails-ci.yml@test/ubuntu-26.04
     with:
       with-mysql: true
       # サービスコンテナの root はパスワード無し。空の DB_PASSWORD を渡し、
