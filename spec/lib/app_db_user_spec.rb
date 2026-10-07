@@ -42,8 +42,8 @@ RSpec.describe AppDbUser do
   end
 
   describe ".quote_database" do
-    it "escapes the _ and % wildcards of GRANT database names" do
-      expect(described_class.quote_database(connection, "a%b_c")).to eq("`a\\%b\\_c`")
+    it "escapes the _ and % wildcards and the \\ escape character of GRANT database names" do
+      expect(described_class.quote_database(connection, "a%b_c\\d")).to eq("`a\\%b\\_c\\\\d`")
     end
   end
 
@@ -73,7 +73,7 @@ RSpec.describe AppDbUser do
       grants = connection.select_values("SHOW GRANTS FOR #{connection.quote(username)}@'%'")
       expect(grants).to contain_exactly(
         "GRANT USAGE ON *.* TO `#{username}`@`%`",
-        *databases.map { |db| "GRANT SELECT, INSERT, UPDATE, DELETE ON `#{db.gsub("_", "\\_")}`.* TO `#{username}`@`%`" }
+        *%w[test test\\_cache test\\_queue test\\_cable].map { |suffix| "GRANT SELECT, INSERT, UPDATE, DELETE ON `bulk\\_file\\_importer\\_#{suffix}`.* TO `#{username}`@`%`" }
       )
     end
 
