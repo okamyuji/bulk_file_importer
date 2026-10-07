@@ -49,7 +49,6 @@
 
 # Terraform
 /infra/terraform/envs/*/.terraform/
-/infra/terraform/envs/*/.terraform.lock.hcl
 /infra/terraform/envs/*/tfplan
 /infra/terraform/envs/*/*.tfstate
 /infra/terraform/envs/*/*.tfstate.backup

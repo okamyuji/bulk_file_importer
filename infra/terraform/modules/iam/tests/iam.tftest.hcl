@@ -57,3 +57,45 @@ run "rejects_non_ecr_repository_arn" {
 
   expect_failures = [var.ecr_repository_arn]
 }
+
+# RDS が管理するマスターの secret は名前が "rds!" で始まる。
+run "accepts_rds_managed_secret_arn" {
+  command = plan
+
+  variables {
+    secrets_arns = ["arn:aws:secretsmanager:ap-northeast-1:123456789012:secret:rds!cluster-0123abcd-4567-89ef-0123-456789abcdef-AbCdEf"]
+  }
+}
+
+run "rejects_wildcard_secrets_arn" {
+  command = plan
+
+  variables {
+    secrets_arns = ["*"]
+  }
+
+  expect_failures = [var.secrets_arns]
+}
+
+run "rejects_wildcard_among_valid_secrets_arns" {
+  command = plan
+
+  variables {
+    secrets_arns = [
+      "arn:aws:secretsmanager:ap-northeast-1:123456789012:secret:test-prod-rails-master-key-AbCdEf",
+      "arn:aws:secretsmanager:ap-northeast-1:123456789012:secret:*",
+    ]
+  }
+
+  expect_failures = [var.secrets_arns]
+}
+
+run "rejects_non_secrets_manager_arn" {
+  command = plan
+
+  variables {
+    secrets_arns = ["arn:aws:ssm:ap-northeast-1:123456789012:parameter/test"]
+  }
+
+  expect_failures = [var.secrets_arns]
+}

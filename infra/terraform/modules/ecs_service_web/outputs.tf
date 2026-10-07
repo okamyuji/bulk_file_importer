@@ -22,3 +22,8 @@ output "target_group_arn" {
   description = "ARN of the ALB target group"
   value       = aws_lb_target_group.this.arn
 }
+
+output "container_definitions" {
+  description = "JSON container definitions of the web task"
+  value       = aws_ecs_task_definition.this.container_definitions
+}
