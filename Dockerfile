@@ -79,7 +79,7 @@ FROM dhi.io/node:${NODE_TAG}-dev AS frontend
 USER root
 WORKDIR /app/frontend
 
-COPY frontend/package.json frontend/pnpm-lock.yaml ./
+COPY frontend/package.json frontend/pnpm-lock.yaml frontend/pnpm-workspace.yaml ./
 
 RUN corepack enable pnpm && \
     pnpm install --frozen-lockfile --ignore-scripts --prod=false
