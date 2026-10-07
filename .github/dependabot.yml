@@ -17,7 +17,7 @@ updates:
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
-  # pnpm rejects versions newer than 7 days (minimumReleaseAge), so propose only those.
+  # pnpm installs only versions at least 7 days old (minimumReleaseAge); cooldown keeps version-update PRs within that.
   cooldown:
     default-days: 7
   groups:
