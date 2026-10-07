@@ -290,7 +290,7 @@ terraform -chdir=infra/terraform/envs/prod providers lock \
 
 ### 本番のDBユーザー
 
-本番のwebとworkerは、アプリ用のMySQLユーザー（`app_db_username`、既定は`app`）で接続します。このユーザーに許すのは、4つのDB（primary、cache、queue、cable）へのSELECT、INSERT、UPDATE、DELETEだけです。パスワードはTerraformが乱数で作り、Secrets Managerの`<project>-prod-app-db-password`に書き込みます。値はstateにもplanファイルにも保存されません。
+本番のwebとworkerは、アプリ用のMySQLユーザー（`app_db_username`、既定は`app`）で接続します。`db:grant_app_user`がこのユーザーに付与するのは、4つのDB（primary、cache、queue、cable）へのSELECT、INSERT、UPDATE、DELETEだけです。パスワードはTerraformが乱数で作り、Secrets Managerの`<project>-prod-app-db-password`に書き込みます。値はstateにもplanファイルにも保存されません。
 
 テーブルの作成と変更、アプリ用ユーザーの作成と権限の付与は、migrateタスク（`<project>-prod-migrate`）の役目です。migrateタスクはAuroraのマスターユーザーで接続し、`db:prepare`と`db:grant_app_user`を順に実行します。`db:grant_app_user`は何度実行しても同じ結果になるので、MySQL側のパスワードはいつもsecretの値と揃います。
 
@@ -355,7 +355,7 @@ aws ecs update-service --cluster "$CLUSTER" --service <project>-prod-worker --fo
 - TLS以外の拒否 バケットポリシーで、`aws:SecureTransport`が`false`の要求を拒否します。
 - 読める主体の限定 バケットポリシーで、Terraformを実行するIAMロール以外のオブジェクトの読み書きを拒否します。
 
-バケットポリシーの例です。`<バケット名>`、`<アカウントID>`、`<ロール名>`を置き換えてください。バケットポリシー自体の変更は拒否しないので、ポリシーを誤っても管理者が直せます。
+バケットポリシーの例です。`<バケット名>`、`<アカウントID>`、`<ロール名>`を置き換えてください。パスを持つロールではARNにパスが入るので、`aws iam get-role --role-name <ロール名> --query Role.Arn`の値をそのまま使ってください。バージョニングを有効にすると過去の版は`s3:GetObjectVersion`で読めるため、版を指定する操作も拒否します。バケットポリシー自体の変更は拒否しないので、ポリシーを誤っても管理者が直せます。
 
 ```json
 {
@@ -373,7 +373,11 @@ aws ecs update-service --cluster "$CLUSTER" --service <project>-prod-worker --fo
       "Sid": "DenyObjectAccessExceptTerraform",
       "Effect": "Deny",
       "Principal": "*",
-      "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+      "Action": [
+        "s3:GetObject", "s3:GetObjectVersion",
+        "s3:PutObject",
+        "s3:DeleteObject", "s3:DeleteObjectVersion"
+      ],
       "Resource": "arn:aws:s3:::<バケット名>/*",
       "Condition": { "ArnNotEquals": { "aws:PrincipalArn": "arn:aws:iam::<アカウントID>:role/<ロール名>" } }
     }

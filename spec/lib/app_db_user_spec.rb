@@ -41,6 +41,12 @@ RSpec.describe AppDbUser do
     end
   end
 
+  describe ".quote_database" do
+    it "escapes the _ and % wildcards of GRANT database names" do
+      expect(described_class.quote_database(connection, "a%b_c")).to eq("`a\\%b\\_c`")
+    end
+  end
+
   describe ".grant!" do
     it "lets the user read and write rows" do
       grant
@@ -67,8 +73,18 @@ RSpec.describe AppDbUser do
       grants = connection.select_values("SHOW GRANTS FOR #{connection.quote(username)}@'%'")
       expect(grants).to contain_exactly(
         "GRANT USAGE ON *.* TO `#{username}`@`%`",
-        *databases.map { |db| "GRANT SELECT, INSERT, UPDATE, DELETE ON `#{db}`.* TO `#{username}`@`%`" }
+        *databases.map { |db| "GRANT SELECT, INSERT, UPDATE, DELETE ON `#{db.gsub("_", "\\_")}`.* TO `#{username}`@`%`" }
       )
+    end
+
+    it "does not let the user reach a database whose name matches the others only through the _ wildcard" do
+      lookalike = "bulk_file_importer_testXcache"
+      connection.execute("CREATE DATABASE IF NOT EXISTS #{lookalike}")
+      grant
+
+      expect { connect_as(username, password, database: lookalike) }.to raise_error(Mysql2::Error, /Access denied/)
+    ensure
+      connection.execute("DROP DATABASE IF EXISTS #{lookalike}")
     end
 
     it "lets the user reach every configured database" do

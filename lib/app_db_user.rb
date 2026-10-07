@@ -20,13 +20,18 @@ module AppDbUser
     statements = [
       "CREATE USER IF NOT EXISTS #{account} IDENTIFIED BY #{connection.quote(password)}",
       "ALTER USER #{account} IDENTIFIED BY #{connection.quote(password)}",
-      *databases.map { |db| "GRANT #{PRIVILEGES} ON #{connection.quote_table_name(db)}.* TO #{account}" }
+      *databases.map { |db| "GRANT #{PRIVILEGES} ON #{quote_database(connection, db)}.* TO #{account}" }
     ]
     statements.each { |sql| execute_redacted(connection, sql, password) }
   end
 
   def configured_databases
     ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).map(&:database)
+  end
+
+  # GRANT の DB 名では _ と % がワイルドカードになり、似た名前の別 DB にも権限が及ぶ。
+  def quote_database(connection, db)
+    connection.quote_table_name(db.gsub(/[_%]/) { |c| "\\#{c}" })
   end
 
   def fetch!(env, key)
