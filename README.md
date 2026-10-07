@@ -160,7 +160,7 @@ make dev
 
 ## サプライチェーン攻撃への対策について
 
-- `.npmrc`で`minimum-release-age=10080`（7日間）を設定しています。npm registryに公開されてから7日未満のパッケージバージョンはインストールが拒否されます
+- `frontend/pnpm-workspace.yaml`で`minimumReleaseAge: 10080`（7日間）を設定しています。npm registryに公開されてから7日未満のパッケージバージョンはインストールが拒否されます
 - gitleaksをlefthookのpre-commitフックとGitHub ActionsのCI（`gitleaks`ジョブ）で実行し、シークレットの混入を二重に防止しています。`pull-requests: write`権限はgitleaksジョブのみに限定し、他のジョブには付与していません
 - Brakemanとbundler-auditをCIで毎回走らせ、Rails脆弱性とgemのCVEを検出します
 - Dependabotがbundler/npm/GitHub Actionsの依存パッケージを継続的に更新します
