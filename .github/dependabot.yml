@@ -12,6 +12,18 @@ updates:
     bundler:
       patterns:
         - "*"
+- package-ecosystem: npm
+  directory: "/frontend"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  # pnpm rejects versions newer than 7 days (minimumReleaseAge), so propose only those.
+  cooldown:
+    default-days: 7
+  groups:
+    npm:
+      patterns:
+        - "*"
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
