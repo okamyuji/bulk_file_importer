@@ -33,7 +33,7 @@ CSVは行単位でチャンク分割してDBへupsertし、バイナリは8MB単
 
 - macOS（Apple Silicon）またはLinux
 - miseによるRuby 3.4.11の管理（ https://mise.jdx.dev/ ）
-- Docker Desktop。MySQL 8.0のコンテナが`mysql8-mysql-1`という名前で起動しており、`mysql8_default`ネットワークに接続されている必要があります
+- Docker Desktop MySQL 8.0のコンテナを`mysql8-mysql-1`という名前で起動し、`mysql8_default`ネットワークに接続しておきます
 - Node.js 22以降とpnpm 10以降
 - lefthook（`brew install lefthook`でインストールできます）
 - Terraform 1.11以降（インフラの検証に使用します）
@@ -180,12 +180,17 @@ make quality
 
 ## ベンチマークの実行方法
 
-実サーバ + 実 Solid Queue ワーカーでアップロードからインポート完了までの時間とプロセス RSS を計測します。`script/bench/` 配下のスクリプトが、合成 CSV/画像の生成、API 経由のアップロード、ステータスポーリング、Worker と Puma のメモリピーク取得を一括で行います。
+実際のサーバとSolid Queueワーカーを動かし、アップロードからインポート完了までの時間と、プロセスのRSSを計測します。`script/bench/` 配下のスクリプトは、次の4つをまとめて実行します。
+
+- 合成したCSVと画像の生成
+- APIを通したアップロード
+- ステータスのポーリング
+- WorkerとPumaのメモリのピークの取得
 
 ### 前提
 
-- `make setup` 済み（MinIO + MySQL コンテナ起動、`bin/rails db:prepare` 完了）
-- `make dev` で Rails / Solid Queue / Vite が起動している
+- `make setup` が終わっていること（MinIOとMySQLのコンテナを起動し、`bin/rails db:prepare` を完了した状態）
+- `make dev` で、Rails、Solid Queue、Viteが起動していること
 
 ### 一括実行
 
@@ -193,7 +198,7 @@ make quality
 script/bench/run.sh all
 ```
 
-ベンチユーザー (`bench@example.com / Password1!`) を自動で `registrations` 経由で作成し、JWT を `tmp/bench/token.txt` に保存します。続けて 4 ケース（10 万行 CSV、100 万行 CSV、5MB 画像、300MB 画像）を順に実行し、結果を `tmp/bench/results/result_<label>.txt` に書き出してから `script/bench/summarize.rb` でレポートを表示します。
+スクリプトは最初に、`registrations` のエンドポイントでベンチ用のユーザー（`bench@example.com / Password1!`）を自動的に作り、取得したJWTを `tmp/bench/token.txt` に保存します。続けて10万行のCSV、100万行のCSV、5MBの画像、300MBの画像の4ケースを順に実行し、各ケースの結果を `tmp/bench/results/result_<label>.txt` に書き出します。レポートを表示するのは、最後に動く `script/bench/summarize.rb` です。
 
 ### 個別ケース
 
@@ -218,11 +223,11 @@ script/bench/run.sh img_large
 
 `summarize.rb` は各ケースについて次を出します。
 
-- アップロード時間 / 分割時間 / DB 投入（または再結合）時間 / 全体時間
-- 失敗行 or 失敗バイト
-- DB 投入件数 / チャンク数
-- Worker と Puma の RSS（before / peak / after / delta）
-- スループット（CSV は行/秒、バイナリは MB/秒）
+- 時間 アップロード、分割、DBへの投入（バイナリは再結合）、全体のそれぞれにかかった時間
+- 失敗 CSVは失敗した行、バイナリは失敗したバイト
+- 件数 DBに投入した件数とチャンク数
+- メモリ WorkerとPumaのRSS（before、peak、after、delta）
+- スループット CSVは1秒あたりの行数、バイナリは1秒あたりのMB数
 
 ### ベンチデータと合成器
 
