@@ -12,6 +12,18 @@ updates:
     bundler:
       patterns:
         - "*"
+- package-ecosystem: npm
+  directory: "/frontend"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  # pnpm installs only versions at least 7 days old (minimumReleaseAge); cooldown keeps version-update PRs within that.
+  cooldown:
+    default-days: 7
+  groups:
+    npm:
+      patterns:
+        - "*"
 - package-ecosystem: github-actions
   directory: "/"
   schedule:

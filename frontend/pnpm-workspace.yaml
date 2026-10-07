@@ -7,9 +7,11 @@ overrides:
   "nanoid@<3.3.17": "3.3.18"
   esbuild: "0.28.1"
   postcss: "^8.5.10"
+  "source-map-js@<1.2.2": "1.2.2"
+  "postcss-selector-parser@<7.1.6": "7.1.6"
 
-# セキュリティパッチ適用のための minimumReleaseAge (7日) の例外。
-# nanoid 3.3.17 は 2026-08-03 公開の GHSA 修正版で、公開から7日未満のため
-# 既定ポリシーでは取得できない。上流が修正版を取り込んだら削除してよい。
+# 7日の minimumReleaseAge の例外。source-map-js 1.2.2 は 2026-09-30 公開の GHSA-68fv-2mgg-jv7q
+# 修正版で、この版だけを除外する。pnpm は lockfile の各エントリもこのポリシーで検証するため、
+# 7日が過ぎる前に消すと install が失敗する。2026-10-07T14:09Z 以降は削除してよい。
 minimumReleaseAgeExclude:
-  - nanoid
+  - source-map-js@1.2.2
