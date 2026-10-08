@@ -20,6 +20,11 @@ updates:
   # pnpm installs only versions at least 7 days old (minimumReleaseAge); cooldown keeps version-update PRs within that.
   cooldown:
     default-days: 7
+  # typescript-eslint 8.71 requires typescript <6.1.0; TypeScript 7 breaks lint.
+  # Remove when typescript-eslint's peerDependencies allow the next TypeScript.
+  ignore:
+    - dependency-name: typescript
+      versions: [">=6.1.0"]
   groups:
     npm:
       patterns:
