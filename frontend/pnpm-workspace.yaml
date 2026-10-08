@@ -12,3 +12,10 @@ overrides:
 
 # 公開から7日未満の版を取得しない。pnpm 11 は .npmrc の minimum-release-age を読まないため、ここに書く。
 minimumReleaseAge: 10080 # 60 * 24 * 7 = 7日（分）
+
+# 先に公開された版よりtrusted publisherやprovenanceの信頼の段階が下がった版を拒否し、installを失敗させる。
+# 侵害された可能性のある版の取得を防ぐ。
+trustPolicy: no-downgrade
+# 判定は公開日時だけで比べる。6.x系の保守版はprovenance付きの7.x系より後に公開されたため外す。
+trustPolicyExclude:
+  - "semver@6.3.1"
