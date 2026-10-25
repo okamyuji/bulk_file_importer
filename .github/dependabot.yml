@@ -15,7 +15,8 @@ updates:
 - package-ecosystem: npm
   directory: "/frontend"
   schedule:
-    interval: weekly
+    # A locked version younger than the cooldown fails the whole pnpm update; retry daily so updates resume as soon as it ages.
+    interval: daily
   open-pull-requests-limit: 10
   # pnpm installs only versions at least 7 days old (minimumReleaseAge); cooldown keeps version-update PRs within that.
   cooldown:
