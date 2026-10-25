@@ -14,6 +14,14 @@ jobs:
       contents: read
     uses: okamyuji/reusable-workflows/.github/workflows/security-scan.yml@v1
 
+  # frozen install で pnpm-workspace.yaml の minimumReleaseAge を lockfile に効かせる。rails-ci は node を扱わない
+  frontend:
+    permissions:
+      contents: read
+    uses: okamyuji/reusable-workflows/.github/workflows/node-ci.yml@v1
+    with:
+      working-directory: frontend
+
   rails-ci:
     permissions:
       contents: read
