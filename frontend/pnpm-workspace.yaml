@@ -9,6 +9,7 @@ overrides:
   postcss: "^8.5.10"
   "source-map-js@<1.2.2": "1.2.2"
   "postcss-selector-parser@<7.1.6": "7.1.6"
+  'minimatch@>=10.0.0 <11.0.1': ^11.0.3
 
 # 公開から7日未満の版を取得しない。pnpm 11 は .npmrc の minimum-release-age を読まないため、ここに書く。
 minimumReleaseAge: 10080 # 60 * 24 * 7 = 7日（分）
@@ -57,6 +58,8 @@ minimumReleaseAgeExclude:
   - '@rolldown/binding-win32-arm64-msvc@1.2.15'
   - '@rolldown/binding-win32-x64-msvc@1.2.15'
   - '@tanstack/query-core@5.104.5'
+  - minimatch@11.0.3
+  - '@isaacs/nonrecursive-glob-match@1.0.3'
 
 # 先に公開された版よりtrusted publisherやprovenanceの信頼の段階が下がった版を拒否し、installを失敗させる。
 # 侵害された可能性のある版の取得を防ぐ。
