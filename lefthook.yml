@@ -22,20 +22,21 @@ pre-commit:
       glob: "*.erb"
       run: bundle exec erb_lint {staged_files}
 
-    frontend_eslint:
+    frontend_oxlint:
       root: "frontend/"
       glob: "frontend/**/*.{ts,tsx,js,jsx}"
-      run: pnpm --dir frontend exec eslint {staged_files}
-    frontend_prettier:
+      run: pnpm exec oxlint {staged_files}
+    frontend_oxfmt:
       root: "frontend/"
       glob: "frontend/**/*.{ts,tsx,css,json}"
-      run: pnpm --dir frontend exec prettier --check {staged_files}
+      run: pnpm exec oxfmt --check {staged_files}
     frontend_typecheck:
       glob: "frontend/**/*.{ts,tsx}"
       run: pnpm --dir frontend typecheck
     frontend_stylelint:
+      root: "frontend/"
       glob: "frontend/**/*.css"
-      run: pnpm --dir frontend exec stylelint {staged_files}
+      run: pnpm exec stylelint {staged_files}
 
 pre-push:
   commands:

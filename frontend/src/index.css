@@ -7,11 +7,7 @@
 body {
   margin: 0;
   font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    "Helvetica Neue",
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue",
     sans-serif;
   background: #0f172a;
   color: #e2e8f0;
