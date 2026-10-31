@@ -8,7 +8,11 @@ test("two users see only their own imports", async ({ browser }) => {
   const aEmail = `${rand("alpha")}@example.com`;
   await signUp(aPage, aEmail, "secret123", "Alpha");
   await uploadCsv(aPage, "small.csv");
-  await waitForImportStatus(aPage, ["completed", "completed_with_errors"], 45_000);
+  await waitForImportStatus(
+    aPage,
+    ["completed", "completed_with_errors"],
+    45_000,
+  );
 
   // User B
   const bCtx = await browser.newContext();

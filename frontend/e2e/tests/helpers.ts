@@ -9,11 +9,18 @@ export function rand(prefix = "u"): string {
   return `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 }
 
-export async function signUp(page: Page, email: string, password: string, name: string): Promise<void> {
+export async function signUp(
+  page: Page,
+  email: string,
+  password: string,
+  name: string,
+): Promise<void> {
   await page.goto("/login");
   await expect(page.getByRole("heading", { name: /サインイン/ })).toBeVisible();
   await page.getByTestId("toggle-signup").click();
-  await expect(page.getByRole("heading", { name: /アカウント作成/ })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /アカウント作成/ }),
+  ).toBeVisible();
   await page.getByLabel(/お名前/).fill(name);
   await page.getByLabel(/メールアドレス/).fill(email);
   await page.getByLabel(/パスワード/).fill(password);
@@ -21,7 +28,11 @@ export async function signUp(page: Page, email: string, password: string, name: 
   await expect(page).toHaveURL(/\/imports(\?|$)/, { timeout: 15_000 });
 }
 
-export async function signIn(page: Page, email: string, password: string): Promise<void> {
+export async function signIn(
+  page: Page,
+  email: string,
+  password: string,
+): Promise<void> {
   await page.goto("/login");
   await expect(page.getByRole("heading", { name: /サインイン/ })).toBeVisible();
   await page.getByLabel(/メールアドレス/).fill(email);
@@ -30,12 +41,18 @@ export async function signIn(page: Page, email: string, password: string): Promi
   await expect(page).toHaveURL(/\/imports(\?|$)/, { timeout: 15_000 });
 }
 
-export async function uploadCsv(page: Page, fixture: string, targetKind = "sales_record"): Promise<void> {
+export async function uploadCsv(
+  page: Page,
+  fixture: string,
+  targetKind = "sales_record",
+): Promise<void> {
   await page.goto("/imports/new");
   if (targetKind === "ledger_entry") {
     await page.getByRole("radio", { name: "仕訳" }).click();
   }
-  await page.locator('input[type="file"]').setInputFiles(path.join(FIXTURES, fixture));
+  await page
+    .locator('input[type="file"]')
+    .setInputFiles(path.join(FIXTURES, fixture));
   await page.getByRole("button", { name: /インポート開始/ }).click();
   await page.waitForURL(/\/imports\/\d+/);
 }
@@ -52,7 +69,8 @@ export async function waitForImportStatus(
     const badge = await page
       .locator("span")
       .filter({
-        hasText: /^(pending|splitting|processing|completed|completed_with_errors|partially_failed|failed)$/,
+        hasText:
+          /^(pending|splitting|processing|completed|completed_with_errors|partially_failed|failed)$/,
       })
       .first()
       .textContent();
@@ -60,5 +78,7 @@ export async function waitForImportStatus(
     if (list.includes(last)) return last;
     await page.waitForTimeout(500);
   }
-  throw new Error(`Timed out waiting for status ${list.join("|")}, last was "${last}"`);
+  throw new Error(
+    `Timed out waiting for status ${list.join("|")}, last was "${last}"`,
+  );
 }
