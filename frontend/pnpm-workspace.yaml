@@ -11,34 +11,8 @@ overrides:
   "postcss-selector-parser@<7.1.6": "7.1.6"
   'minimatch@>=10.0.0 <11.0.1': ^11.0.3
 
-# 公開から7日未満の版を取得しない。pnpm 11 は .npmrc の minimum-release-age を読まないため、ここに書く。
-minimumReleaseAge: 10080 # 60 * 24 * 7 = 7日（分）
-minimumReleaseAgeExclude:
-  - rolldown@1.2.15
-  - vite@8.3.5
-  - zustand@5.0.16
-  - '@tanstack/react-query@5.104.5'
-  - fast-uri@3.1.9
-  - ignore@7.0.14
-  - postcss@8.5.31
-  - react-router@8.5.0
-  - '@oxc-project/types@0.155.0'
-  - '@rolldown/binding-android-arm-eabi@1.2.15'
-  - '@rolldown/binding-android-arm64@1.2.15'
-  - '@rolldown/binding-darwin-arm64@1.2.15'
-  - '@rolldown/binding-darwin-x64@1.2.15'
-  - '@rolldown/binding-freebsd-x64@1.2.15'
-  - '@rolldown/binding-linux-arm-gnueabihf@1.2.15'
-  - '@rolldown/binding-linux-arm64-gnu@1.2.15'
-  - '@rolldown/binding-linux-arm64-musl@1.2.15'
-  - '@rolldown/binding-linux-ppc64-gnu@1.2.15'
-  - '@rolldown/binding-linux-s390x-gnu@1.2.15'
-  - '@rolldown/binding-linux-x64-gnu@1.2.15'
-  - '@rolldown/binding-linux-x64-musl@1.2.15'
-  - '@rolldown/binding-openharmony-arm64@1.2.15'
-  - '@rolldown/binding-win32-arm64-msvc@1.2.15'
-  - '@rolldown/binding-win32-x64-msvc@1.2.15'
-  - '@tanstack/query-core@5.104.5'
+# 公開から3日未満の版を取得しない。pnpm 11 は .npmrc の minimum-release-age を読まないため、ここに書く。
+minimumReleaseAge: 4320 # 60 * 24 * 3 = 3日（分）
 
 # 先に公開された版よりtrusted publisherやprovenanceの信頼の段階が下がった版を拒否し、installを失敗させる。
 # 侵害された可能性のある版の取得を防ぐ。
