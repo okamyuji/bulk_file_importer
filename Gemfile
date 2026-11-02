@@ -1,5 +1,5 @@
-source "https://rubygems.org"
-
+# Dependabot の cooldown は Bundler の解決に渡らず、推移的な gem には効かないので、Bundler 自身の待機をかける
+source "https://rubygems.org", cooldown: 3
 # 3.4.11 をローカルでは固定しつつ、DHI distroless ランタイムは 3.4 系の最新パッチに
 # 揃わないことがある（記事より：builder と runtime で 3.4.9 / 3.4.5 のように
 # パッチ違い）ため、Gemfile 側は `~>` で許容幅を取って RUBY_VERSION 厳密一致で
