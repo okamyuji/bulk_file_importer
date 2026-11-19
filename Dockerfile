@@ -2,9 +2,9 @@
 # check=error=true
 #
 # Docker Hardened Images (DHI) ベースの multi-stage 本番 Dockerfile。
-# - builder ステージ: dhi.io/ruby:3.4-debian12-dev / dhi.io/node:22-debian12-dev
+# - builder ステージ: dhi.io/ruby:4.0-debian13-dev / dhi.io/node:22-debian12-dev
 #   （apt / shell / bundler / pnpm が利用可能）
-# - runtime: dhi.io/ruby:3.4-debian12（distroless：`ruby` バイナリと依存ライブラリ
+# - runtime: dhi.io/ruby:4.0-debian13（distroless：`ruby` バイナリと依存ライブラリ
 #   のみで shell も `bundle` バイナリも含まない）
 # - 非 root（USER nonroot）、非特権ポート 8080 で listen
 # - HEALTHCHECK は orchestrator 側で実装する（runtime に curl/pgrep が無いため）
@@ -25,7 +25,7 @@
 #   docker run -p 8080:8080 -e RAILS_MASTER_KEY=<key> bulk-file-importer:web
 #   docker run -e RAILS_MASTER_KEY=<key> bulk-file-importer:worker
 
-ARG RUBY_TAG=3.4-debian12
+ARG RUBY_TAG=4.0-debian13
 ARG NODE_TAG=22-debian12
 
 # ---------------------------------------------------------------------------
@@ -57,12 +57,12 @@ COPY Gemfile Gemfile.lock ./
 # (`Kernel.exec: No such file or directory - bin/start.rb`)。
 # DHI runtime には gem コマンドは無いが、BUNDLE_PATH 配下にあれば require で解決できる。
 RUN BUNDLED_WITH=$(awk '/BUNDLED WITH/{getline; print $1}' Gemfile.lock) && \
-    gem install --no-document --install-dir "${BUNDLE_PATH}/ruby/3.4.0" \
+    gem install --no-document --install-dir "${BUNDLE_PATH}/ruby/4.0.0" \
       bundler:"${BUNDLED_WITH}"
 
-ENV PATH="${BUNDLE_PATH}/ruby/3.4.0/bin:${PATH}" \
-    GEM_PATH="${BUNDLE_PATH}/ruby/3.4.0" \
-    GEM_HOME="${BUNDLE_PATH}/ruby/3.4.0"
+ENV PATH="${BUNDLE_PATH}/ruby/4.0.0/bin:${PATH}" \
+    GEM_PATH="${BUNDLE_PATH}/ruby/4.0.0" \
+    GEM_HOME="${BUNDLE_PATH}/ruby/4.0.0"
 
 RUN --mount=type=cache,target=/root/.bundle/cache \
     bundle install --jobs 4 --retry 3 && \
@@ -137,9 +137,9 @@ ENV RAILS_ENV=production \
     BUNDLE_PATH=/rails/vendor/bundle \
     BUNDLE_WITHOUT="development:test" \
     MALLOC_ARENA_MAX=2 \
-    PATH="/rails/vendor/bundle/ruby/3.4.0/bin:${PATH}" \
-    GEM_PATH="/rails/vendor/bundle/ruby/3.4.0" \
-    GEM_HOME="/rails/vendor/bundle/ruby/3.4.0"
+    PATH="/rails/vendor/bundle/ruby/4.0.0/bin:${PATH}" \
+    GEM_PATH="/rails/vendor/bundle/ruby/4.0.0" \
+    GEM_HOME="/rails/vendor/bundle/ruby/4.0.0"
 
 # mysql2 gem は libmariadb.so.3 に動的リンクするが、distroless runtime には
 # 含まれない。gems builder で apt インストール済みのものを最終ステージへ持ち込む。

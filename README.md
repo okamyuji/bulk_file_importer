@@ -12,7 +12,7 @@ CSVは行単位でチャンク分割してDBへupsertし、バイナリは8MB単
 
 | レイヤ | 採用技術 |
 |---|---|
-| バックエンド | Ruby 3.4.11 / Rails 8.1.3 / Puma |
+| バックエンド | Ruby 4.0.10 / Rails 8.1.4.1 / Puma |
 | データベース | MySQL 8.0（開発環境はDockerコンテナ、本番はAurora MySQL） |
 | ジョブキュー | Solid Queue（Rails 8の標準機能） |
 | リアルタイム通信 | Solid Cable（ActionCable） |
@@ -32,7 +32,7 @@ CSVは行単位でチャンク分割してDBへupsertし、バイナリは8MB単
 以下のツールが事前にインストールされている必要があります。
 
 - macOS（Apple Silicon）またはLinux
-- miseによるRuby 3.4.11の管理（ https://mise.jdx.dev/ ）
+- miseによるRuby 4.0.10の管理（ https://mise.jdx.dev/ ）
 - Docker Desktop（MySQL 8.0のコンテナを`mysql8-mysql-1`という名前で起動し、`mysql8_default`ネットワークに接続しておきます）
 - Node.js 22以降とpnpm 10以降
 - lefthook（`brew install lefthook`でインストールできます）
