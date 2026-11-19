@@ -14,7 +14,7 @@
 #   2. tzinfo-data を Gemfile 無条件で require（システム tzdata が無い）。
 #   3. config/puma.rb は `bind` のみ。`port` と併記すると 2 重 bind で死ぬ。
 #   4. Gemfile.lock に aarch64-linux と x86_64-linux 両プラットフォーム追加済。
-#   5. Gemfile の `ruby` は `~> 3.4` で、-dev と非 -dev のパッチ差を吸収する。
+#   5. Gemfile の `ruby` は `~> 4.0` で、-dev と非 -dev のパッチ差を吸収する。
 #
 # Build:
 #   docker login dhi.io
