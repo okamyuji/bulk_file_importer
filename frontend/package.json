@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@rails/actioncable": "^8.1.401",
-    "@tanstack/react-query": "^5.108.2",
+    "@tanstack/react-query": "^5.108.3",
     "clsx": "^2.1.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
